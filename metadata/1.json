@@ -1,0 +1,27 @@
+{
+  "name": "Flame Dragon",
+  "description": "A legendary dragon forged in eternal fire. Its flames can melt even enchanted steel.",
+  "image": "ipfs://bafybeie5n5h7c3647uxedsvccpsjcxiopypco2m73wpycaim3ryogay32i",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Fire"
+    },
+    {
+      "trait_type": "Class",
+      "value": "Dragon"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 95
+    },
+    {
+      "trait_type": "Defense",
+      "value": 80
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Crystal Golem",
+  "description": "A massive magical guardian formed from ancient enchanted crystals.",
+  "image": "ipfs://bafybeiaxtvmovwtimgbwh6l44f7m3skmk3ppucoi2gixowrv2xprijpbj4",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Earth"
+    },
+    {
+      "trait_type": "Class",
+      "value": "Golem"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 70
+    },
+    {
+      "trait_type": "Defense",
+      "value": 95
+    }
+  ]
+}

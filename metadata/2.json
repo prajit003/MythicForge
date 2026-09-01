@@ -1,0 +1,27 @@
+{
+  "name": "Shadow Knight",
+  "description": "An elite warrior forged in darkness, protected by enchanted shadow armor.",
+  "image": "YOUR_IPFS_IMAGE_URI_FOR_SHADOW_KNIGHT",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Dark"
+    },
+    {
+      "trait_type": "Class",
+      "value": "Knight"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 85
+    },
+    {
+      "trait_type": "Defense",
+      "value": 90
+    }
+  ]
+}

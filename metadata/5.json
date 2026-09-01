@@ -1,0 +1,27 @@
+{
+  "name": "Void Assassin",
+  "description": "A legendary assassin who emerges from the void to strike before enemies can react.",
+  "image": "ipfs://bafybeifyzu43n22qhrkkkzocbskwgla54ql2b2s6hbjfr7bxcer6z7f6qa",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Void"
+    },
+    {
+      "trait_type": "Class",
+      "value": "Assassin"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 100
+    },
+    {
+      "trait_type": "Defense",
+      "value": 65
+    }
+  ]
+}

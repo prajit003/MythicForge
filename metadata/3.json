@@ -1,0 +1,27 @@
+{
+  "name": "Storm Mage",
+  "description": "A powerful mage who commands lightning and devastating storms.",
+  "image": "ipfs://bafybeihlpj72kwdp64pdulcfqnqtuzcisbxwoypv2t3abe4dt4ozq3jqp4",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Lightning"
+    },
+    {
+      "trait_type": "Class",
+      "value": "Mage"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 75
+    },
+    {
+      "trait_type": "Defense",
+      "value": 70
+    }
+  ]
+}
