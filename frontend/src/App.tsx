@@ -18,7 +18,14 @@ const GAME_CARD_ADDRESS =
   "0x2e05C142d522c7b6912017c45b068aE5e064bDb9";
 
 const MARKETPLACE_ADDRESS =
-  "0x09003af707554132C3760F12De1856861890F2Ac";
+  "0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5";
+
+const GAME_CARD_ABI = [
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function getCard(uint256 tokenId) view returns (tuple(string name, string description, string rarity, uint256 attack, uint256 defense))",
+  "function approve(address to, uint256 tokenId)",
+  "function transferFrom(address from, address to, uint256 tokenId)",
+];
 
 const MARKETPLACE_ABI = [
   "function listings(uint256 tokenId) view returns (address seller, uint256 price)",
@@ -28,13 +35,6 @@ const MARKETPLACE_ABI = [
   "event CardListed(uint256 indexed tokenId, address indexed seller, uint256 price)",
   "event CardSold(uint256 indexed tokenId, address indexed seller, address indexed buyer, uint256 price)",
   "event CardUnlisted(uint256 indexed tokenId, address indexed seller)",
-];
-
-const GAME_CARD_ABI = [
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function getCard(uint256 tokenId) view returns (tuple(string name, string description, string rarity, uint256 attack, uint256 defense))",
-  "function tokenURI(uint256 tokenId) view returns (string)",
-  "function approve(address to, uint256 tokenId)",
 ];
 
 type Card = {
@@ -61,7 +61,18 @@ type Activity = {
   blockNumber: number;
 };
 
-const CARD_IDS = [1, 2, 3, 4, 5];
+const CARD_IDS = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+];
 
 const IMAGE_CIDS: Record<number, string> = {
   1: "bafybeie5n5h7c3647uxedsvccpsjcxiopypco2m73wpycaim3ryogay32i",
@@ -69,14 +80,11 @@ const IMAGE_CIDS: Record<number, string> = {
   3: "bafybeihlpj72kwdp64pdulcfqnqtuzcisbxwoypv2t3abe4dt4ozq3jqp4",
   4: "bafybeiaxtvmovwtimgbwh6l44f7m3skmk3ppucoi2gixowrv2xprijpbj4",
   5: "bafybeifyzu43n22qhrkkkzocbskwgla54ql2b2s6hbjfr7bxcer6z7f6qa",
-};
-
-const METADATA_CIDS: Record<number, string> = {
-  1: "bafkreiffufwq762mkfcyukfdifapghxxmdcmy2rt7ryxam2jbqv3jl6uxm",
-  2: "bafkreid4sp6vmxhyyseozvnwrbzvozvgcfrpwgwtetmjuf35w4nur55d74",
-  3: "bafkreibvexsi64bcv5lw5neqndaajgepqgtqa24dniw56qrgyv4ygsqfq4",
-  4: "bafkreigviylsp7sycvyra6j37qii5vgucsemvxm4ytp6a7ztldcf6ztgrm",
-  5: "bafkreigac3oipxpyae2g3vpc37otbcyad6ke3exmq35nwjjfqiinfj6lxe",
+  6: "bafybeienflcflx7rzrxzh5q47dhnw4a7lpoj5d7wbhyadoehkjxfwzh6z4",
+  7: "bafybeicxjtok6ai4nov3bsl5cfay3qkh4nevq2jocfwhvx6u27bniz2w24",
+  8: "bafybeieqizupo4bzh63pjqfwj3bimwiwqdsfpa64h7qyusxt6k3tbj5koe",
+  9: "bafybeiex4zb6h46ot24burtagm46imuxvp2ymij6ta6thckitq2o75bl5e",
+  10: "bafybeib6szx2jv7tx542qnlvovhf5763h7rwnwlfcbe5a7wvsdryhjuiji",
 };
 
 const IPFS_GATEWAYS = [
@@ -86,20 +94,22 @@ const IPFS_GATEWAYS = [
   "https://dweb.link/ipfs/",
 ];
 
-function getGatewayUrl(
+function ipfsUrl(
   cid: string,
-  gatewayIndex: number
+  gateway = 0
 ) {
-  return IPFS_GATEWAYS[gatewayIndex] + cid;
+  return IPFS_GATEWAYS[gateway] + cid;
 }
 
 function App() {
   const [account, setAccount] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] =
+    useState<Activity[]>([]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingCards, setLoadingCards] = useState(false);
+  const [loadingCards, setLoadingCards] =
+    useState(false);
   const [selectedCard, setSelectedCard] =
     useState<Card | null>(null);
 
@@ -112,14 +122,22 @@ function App() {
   const [sortOption, setSortOption] =
     useState("default");
 
+  const [transferCardId, setTransferCardId] =
+    useState<number | null>(null);
+
+  const [recipientAddress, setRecipientAddress] =
+    useState("");
+
   const loadRequestId = useRef(0);
 
-  function getCardName(tokenId: number): string {
-    const card = cards.find(
-      (item) => item.tokenId === tokenId
+  function getCardName(tokenId: number) {
+    const existing = cards.find(
+      (card) => card.tokenId === tokenId
     );
 
-    if (card) return card.name;
+    if (existing) {
+      return existing.name;
+    }
 
     const names: Record<number, string> = {
       1: "Flame Dragon",
@@ -127,31 +145,300 @@ function App() {
       3: "Storm Mage",
       4: "Crystal Golem",
       5: "Void Assassin",
+      6: "Inferno Phoenix",
+      7: "Frost Titan",
+      8: "Thunder Beast",
+      9: "Blood Moon Samurai",
+      10: "Emerald Guardian",
     };
 
     return names[tokenId] || `Token #${tokenId}`;
   }
 
-  function getRarityClass(rarity: string) {
+  function rarityClass(rarity: string) {
     return `rarity-${rarity
       .toLowerCase()
       .replace(/\s+/g, "-")}`;
   }
 
   function shortenAddress(address: string) {
-    if (!address) return "Unknown";
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    if (!address) {
+      return "Unknown";
+    }
+
+    return `${address.slice(
+      0,
+      6
+    )}...${address.slice(-4)}`;
   }
 
   function getCardHistory(tokenId: number) {
     return activities
-      .filter((activity) => activity.tokenId === tokenId)
-      .sort((a, b) => b.blockNumber - a.blockNumber);
+      .filter(
+        (activity) =>
+          activity.tokenId === tokenId
+      )
+      .sort(
+        (a, b) =>
+          b.blockNumber - a.blockNumber
+      );
   }
+
+  /*
+   * =====================================================
+   * LOAD MARKETPLACE ACTIVITY
+   * =====================================================
+   */
 
   async function loadActivity() {
     try {
-      if (!window.ethereum) return;
+      if (!window.ethereum) {
+        return;
+      }
+
+      const provider =
+        new ethers.BrowserProvider(
+          window.ethereum
+        );
+
+      const gameCard =
+        new ethers.Contract(
+          GAME_CARD_ADDRESS,
+          GAME_CARD_ABI,
+          provider
+        );
+
+      const marketplaceInterface =
+        new ethers.Interface(
+          MARKETPLACE_ABI
+        );
+
+      const history: Activity[] = [];
+
+      let nextPageParams:
+        | Record<
+            string,
+            string | number
+          >
+        | null = null;
+
+      let pages = 0;
+
+      /*
+       * First attempt:
+       * Blockscout v2 logs API
+       */
+
+      do {
+        const apiUrl = new URL(
+          `https://eth-sepolia.blockscout.com/api/v2/addresses/${MARKETPLACE_ADDRESS}/logs`
+        );
+
+        if (nextPageParams) {
+          for (const [
+            key,
+            value,
+          ] of Object.entries(
+            nextPageParams
+          )) {
+            apiUrl.searchParams.set(
+              key,
+              String(value)
+            );
+          }
+        }
+
+        const response = await fetch(
+          apiUrl.toString()
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Activity API returned ${response.status}`
+          );
+        }
+
+        const payload =
+          await response.json();
+
+        const items = Array.isArray(
+          payload.items
+        )
+          ? payload.items
+          : [];
+
+        for (const rawLog of items) {
+          try {
+            const parsed =
+              marketplaceInterface.parseLog(
+                {
+                  topics:
+                    rawLog.topics,
+                  data: rawLog.data,
+                }
+              );
+
+            if (!parsed) {
+              continue;
+            }
+
+            const eventName =
+              parsed.name;
+
+            if (
+              eventName !==
+                "CardListed" &&
+              eventName !==
+                "CardSold" &&
+              eventName !==
+                "CardUnlisted"
+            ) {
+              continue;
+            }
+
+            const tokenId = Number(
+              parsed.args.tokenId
+            );
+
+            let cardName =
+              getCardName(tokenId);
+
+            try {
+              const card =
+                await gameCard.getCard(
+                  tokenId
+                );
+
+              cardName = card.name;
+            } catch {}
+
+            const blockNumber =
+              Number(
+                rawLog.block_number ??
+                  0
+              );
+
+            const transactionHash =
+              String(
+                rawLog.transaction_hash ||
+                  ""
+              );
+
+            if (
+              eventName ===
+              "CardListed"
+            ) {
+              history.push({
+                type: "LISTED",
+                tokenId,
+                cardName,
+                price:
+                  ethers.formatEther(
+                    parsed.args.price
+                  ),
+                seller: String(
+                  parsed.args.seller
+                ),
+                transactionHash,
+                blockNumber,
+              });
+            } else if (
+              eventName ===
+              "CardSold"
+            ) {
+              history.push({
+                type: "SOLD",
+                tokenId,
+                cardName,
+                price:
+                  ethers.formatEther(
+                    parsed.args.price
+                  ),
+                seller: String(
+                  parsed.args.seller
+                ),
+                buyer: String(
+                  parsed.args.buyer
+                ),
+                transactionHash,
+                blockNumber,
+              });
+            } else {
+              history.push({
+                type: "UNLISTED",
+                tokenId,
+                cardName,
+                price: "0",
+                seller: String(
+                  parsed.args.seller
+                ),
+                transactionHash,
+                blockNumber,
+              });
+            }
+          } catch (eventError) {
+            console.warn(
+              "Skipping unreadable marketplace log:",
+              eventError
+            );
+          }
+        }
+
+        nextPageParams =
+          payload.next_page_params &&
+          typeof payload.next_page_params ===
+            "object"
+            ? payload.next_page_params
+            : null;
+
+        pages += 1;
+      } while (
+        nextPageParams &&
+        pages < 20
+      );
+
+      const uniqueHistory =
+        Array.from(
+          new Map(
+            history.map((item) => [
+              `${item.transactionHash}-${item.type}-${item.tokenId}`,
+              item,
+            ])
+          ).values()
+        );
+
+      uniqueHistory.sort(
+        (a, b) =>
+          b.blockNumber -
+          a.blockNumber
+      );
+
+      setActivities(
+        uniqueHistory
+      );
+
+      console.info(
+        `Loaded ${uniqueHistory.length} marketplace activities from Blockscout.`
+      );
+
+      return;
+    } catch (error) {
+      console.error(
+        "Blockscout activity loading failed:",
+        error
+      );
+    }
+
+    /*
+     * =================================================
+     * RPC FALLBACK
+     * =================================================
+     */
+
+    try {
+      if (!window.ethereum) {
+        return;
+      }
 
       const provider =
         new ethers.BrowserProvider(
@@ -165,6 +452,12 @@ function App() {
           provider
         );
 
+      /*
+       * FIX:
+       * gameCard must also be created inside
+       * this fallback scope.
+       */
+
       const gameCard =
         new ethers.Contract(
           GAME_CARD_ADDRESS,
@@ -172,163 +465,155 @@ function App() {
           provider
         );
 
-      const activityList: Activity[] = [];
+      const latestBlock =
+        await provider.getBlockNumber();
 
-      const listedEvents =
-        await marketplace.queryFilter(
-          marketplace.filters.CardListed()
+      const rangeSize = 50_000;
+
+      const fromBlock = Math.max(
+        0,
+        latestBlock - 1_000_000
+      );
+
+      const fallbackHistory:
+        Activity[] = [];
+
+      const filters = [
+        marketplace.filters.CardListed(),
+        marketplace.filters.CardSold(),
+        marketplace.filters.CardUnlisted(),
+      ];
+
+      for (
+        let startBlock = fromBlock;
+        startBlock <= latestBlock;
+        startBlock += rangeSize
+      ) {
+        const endBlock = Math.min(
+          latestBlock,
+          startBlock +
+            rangeSize -
+            1
         );
 
-      for (const event of listedEvents) {
-        const log =
-          event as ethers.EventLog;
-
-        const tokenId = Number(
-          log.args.tokenId
-        );
-
-        const seller = String(
-          log.args.seller
-        );
-
-        const price =
-          ethers.formatEther(
-            log.args.price
-          );
-
-        let cardName =
-          `Token #${tokenId}`;
-
-        try {
-          const card =
-            await gameCard.getCard(
-              tokenId
+        for (const filter of filters) {
+          const events =
+            await marketplace.queryFilter(
+              filter,
+              startBlock,
+              endBlock
             );
 
-          cardName = card.name;
-        } catch {}
+          for (const event of events) {
+            const log =
+              event as ethers.EventLog;
 
-        activityList.push({
-          type: "LISTED",
-          tokenId,
-          cardName,
-          price,
-          seller,
-          transactionHash:
-            log.transactionHash,
-          blockNumber:
-            log.blockNumber,
-        });
-      }
-
-      const soldEvents =
-        await marketplace.queryFilter(
-          marketplace.filters.CardSold()
-        );
-
-      for (const event of soldEvents) {
-        const log =
-          event as ethers.EventLog;
-
-        const tokenId = Number(
-          log.args.tokenId
-        );
-
-        const seller = String(
-          log.args.seller
-        );
-
-        const buyer = String(
-          log.args.buyer
-        );
-
-        const price =
-          ethers.formatEther(
-            log.args.price
-          );
-
-        let cardName =
-          `Token #${tokenId}`;
-
-        try {
-          const card =
-            await gameCard.getCard(
-              tokenId
+            const tokenId = Number(
+              log.args.tokenId
             );
 
-          cardName = card.name;
-        } catch {}
+            let cardName =
+              getCardName(tokenId);
 
-        activityList.push({
-          type: "SOLD",
-          tokenId,
-          cardName,
-          price,
-          seller,
-          buyer,
-          transactionHash:
-            log.transactionHash,
-          blockNumber:
-            log.blockNumber,
-        });
+            try {
+              const card =
+                await gameCard.getCard(
+                  tokenId
+                );
+
+              cardName = card.name;
+            } catch {}
+
+            if (
+              log.fragment.name ===
+              "CardListed"
+            ) {
+              fallbackHistory.push({
+                type: "LISTED",
+                tokenId,
+                cardName,
+                price:
+                  ethers.formatEther(
+                    log.args.price
+                  ),
+                seller: String(
+                  log.args.seller
+                ),
+                transactionHash:
+                  log.transactionHash,
+                blockNumber:
+                  log.blockNumber,
+              });
+            } else if (
+              log.fragment.name ===
+              "CardSold"
+            ) {
+              fallbackHistory.push({
+                type: "SOLD",
+                tokenId,
+                cardName,
+                price:
+                  ethers.formatEther(
+                    log.args.price
+                  ),
+                seller: String(
+                  log.args.seller
+                ),
+                buyer: String(
+                  log.args.buyer
+                ),
+                transactionHash:
+                  log.transactionHash,
+                blockNumber:
+                  log.blockNumber,
+              });
+            } else {
+              fallbackHistory.push({
+                type: "UNLISTED",
+                tokenId,
+                cardName,
+                price: "0",
+                seller: String(
+                  log.args.seller
+                ),
+                transactionHash:
+                  log.transactionHash,
+                blockNumber:
+                  log.blockNumber,
+              });
+            }
+          }
+        }
       }
 
-      const unlistedEvents =
-        await marketplace.queryFilter(
-          marketplace.filters.CardUnlisted()
-        );
-
-      for (const event of unlistedEvents) {
-        const log =
-          event as ethers.EventLog;
-
-        const tokenId = Number(
-          log.args.tokenId
-        );
-
-        const seller = String(
-          log.args.seller
-        );
-
-        let cardName =
-          `Token #${tokenId}`;
-
-        try {
-          const card =
-            await gameCard.getCard(
-              tokenId
-            );
-
-          cardName = card.name;
-        } catch {}
-
-        activityList.push({
-          type: "UNLISTED",
-          tokenId,
-          cardName,
-          price: "0",
-          seller,
-          transactionHash:
-            log.transactionHash,
-          blockNumber:
-            log.blockNumber,
-        });
-      }
-
-      activityList.sort(
+      fallbackHistory.sort(
         (a, b) =>
           b.blockNumber -
           a.blockNumber
       );
 
-      setActivities(activityList);
-    } catch (error) {
-      console.error(
-        "Failed to load transaction history:",
-        error
+      setActivities(
+        fallbackHistory
       );
+
+      console.info(
+        `Loaded ${fallbackHistory.length} marketplace activities from RPC fallback.`
+      );
+    } catch (fallbackError) {
+      console.error(
+        "Activity fallback failed:",
+        fallbackError
+      );
+
+      setActivities([]);
     }
   }
+
+  /*
+   * =====================================================
+   * CONNECT WALLET
+   * =====================================================
+   */
 
   async function connectWallet() {
     try {
@@ -350,10 +635,7 @@ function App() {
           []
         );
 
-      if (accounts.length === 0) {
-        setStatus(
-          "No wallet account found."
-        );
+      if (!accounts.length) {
         return;
       }
 
@@ -367,7 +649,10 @@ function App() {
         "Wallet connected successfully!"
       );
 
-      await loadCards(newAccount);
+      await loadCards(
+        newAccount
+      );
+
       await loadActivity();
     } catch (error) {
       console.error(error);
@@ -378,14 +663,22 @@ function App() {
     }
   }
 
+  /*
+   * =====================================================
+   * LOAD CARDS
+   * =====================================================
+   */
+
   async function loadCards(
     walletAddress: string
   ) {
-    const requestId =
+    const currentRequest =
       ++loadRequestId.current;
 
     try {
-      if (!window.ethereum) return;
+      if (!window.ethereum) {
+        return;
+      }
 
       setLoadingCards(true);
 
@@ -408,7 +701,8 @@ function App() {
           provider
         );
 
-      const loadedCards: Card[] = [];
+      const loadedCards: Card[] =
+        [];
 
       for (const tokenId of CARD_IDS) {
         try {
@@ -435,7 +729,7 @@ function App() {
             IMAGE_CIDS[tokenId];
 
           const image = imageCID
-            ? getGatewayUrl(
+            ? ipfsUrl(
                 imageCID,
                 0
               )
@@ -471,19 +765,24 @@ function App() {
       }
 
       if (
-        requestId !==
+        currentRequest !==
         loadRequestId.current
       ) {
         return;
       }
 
-      setCards(loadedCards);
-      setAccount(walletAddress);
+      setCards(
+        loadedCards
+      );
+
+      setAccount(
+        walletAddress
+      );
     } catch (error) {
       console.error(error);
 
       if (
-        requestId ===
+        currentRequest ===
         loadRequestId.current
       ) {
         setStatus(
@@ -492,13 +791,19 @@ function App() {
       }
     } finally {
       if (
-        requestId ===
+        currentRequest ===
         loadRequestId.current
       ) {
         setLoadingCards(false);
       }
     }
   }
+
+  /*
+   * =====================================================
+   * BUY CARD
+   * =====================================================
+   */
 
   async function buyCard(
     tokenId: number
@@ -558,7 +863,9 @@ function App() {
           account
         );
 
-      if (balance < listing.price) {
+      if (
+        balance < listing.price
+      ) {
         setStatus(
           "Insufficient Sepolia ETH for this purchase."
         );
@@ -575,7 +882,8 @@ function App() {
         await marketplace.buyCard(
           tokenId,
           {
-            value: listing.price,
+            value:
+              listing.price,
           }
         );
 
@@ -593,7 +901,10 @@ function App() {
 
       setSelectedCard(null);
 
-      await loadCards(account);
+      await loadCards(
+        account
+      );
+
       await loadActivity();
     } catch (error: any) {
       console.error(error);
@@ -615,6 +926,12 @@ function App() {
       setLoading(false);
     }
   }
+
+  /*
+   * =====================================================
+   * SELL CARD
+   * =====================================================
+   */
 
   async function sellCard(
     tokenId: number
@@ -639,17 +956,10 @@ function App() {
           )} in ETH:`
         );
 
-      if (priceInput === null) {
-        return;
-      }
-
-      const trimmedPrice =
-        priceInput.trim();
-
-      if (!trimmedPrice) {
-        setStatus(
-          "Please enter a price."
-        );
+      if (
+        priceInput === null ||
+        !priceInput.trim()
+      ) {
         return;
       }
 
@@ -658,7 +968,7 @@ function App() {
       try {
         price =
           ethers.parseEther(
-            trimmedPrice
+            priceInput.trim()
           );
       } catch {
         setStatus(
@@ -699,46 +1009,41 @@ function App() {
         );
 
       setStatus(
-        `Approving ${getCardName(
-          tokenId
-        )} for the marketplace...`
+        "Approving marketplace..."
       );
 
-      const approvalTx =
+      const approval =
         await gameCard.approve(
           MARKETPLACE_ADDRESS,
           tokenId
         );
 
-      await approvalTx.wait();
+      await approval.wait();
 
       setStatus(
-        `Approval complete. Listing ${getCardName(
-          tokenId
-        )}...`
+        "Listing card..."
       );
 
-      const listingTx =
+      const tx =
         await marketplace.listCard(
           tokenId,
           price
         );
 
-      setStatus(
-        "Listing transaction submitted. Waiting for confirmation..."
-      );
-
-      await listingTx.wait();
+      await tx.wait();
 
       setStatus(
         `${getCardName(
           tokenId
-        )} listed successfully for ${trimmedPrice} ETH!`
+        )} listed successfully!`
       );
 
       setSelectedCard(null);
 
-      await loadCards(account);
+      await loadCards(
+        account
+      );
+
       await loadActivity();
     } catch (error: any) {
       console.error(error);
@@ -749,11 +1054,11 @@ function App() {
           "ACTION_REJECTED"
       ) {
         setStatus(
-          "Transaction rejected in MetaMask."
+          "Transaction rejected."
         );
       } else {
         setStatus(
-          "Failed to list the card."
+          "Listing failed."
         );
       }
     } finally {
@@ -761,19 +1066,17 @@ function App() {
     }
   }
 
+  /*
+   * =====================================================
+   * UNLIST CARD
+   * =====================================================
+   */
+
   async function unlistCard(
     tokenId: number
   ) {
     try {
       if (!window.ethereum) {
-        setStatus(
-          "Please install MetaMask."
-        );
-        return;
-      }
-
-      if (!account) {
-        await connectWallet();
         return;
       }
 
@@ -795,9 +1098,7 @@ function App() {
         );
 
       setStatus(
-        `Removing ${getCardName(
-          tokenId
-        )} from the marketplace...`
+        "Cancelling listing..."
       );
 
       const tx =
@@ -808,14 +1109,161 @@ function App() {
       await tx.wait();
 
       setStatus(
-        `${getCardName(
-          tokenId
-        )} removed from the marketplace.`
+        "Listing cancelled."
       );
 
       setSelectedCard(null);
 
-      await loadCards(account);
+      await loadCards(
+        account
+      );
+
+      await loadActivity();
+    } catch (error) {
+      console.error(error);
+
+      setStatus(
+        "Failed to cancel listing."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /*
+   * =====================================================
+   * TRANSFER CARD
+   * =====================================================
+   */
+
+  async function transferCard(
+    tokenId: number
+  ) {
+    try {
+      if (!window.ethereum) {
+        setStatus(
+          "Please install MetaMask."
+        );
+        return;
+      }
+
+      if (!account) {
+        setStatus(
+          "Connect your wallet first."
+        );
+        return;
+      }
+
+      const recipient =
+        recipientAddress.trim();
+
+      if (!recipient) {
+        setStatus(
+          "Enter a recipient wallet address."
+        );
+        return;
+      }
+
+      if (
+        !ethers.isAddress(
+          recipient
+        )
+      ) {
+        setStatus(
+          "Invalid wallet address."
+        );
+        return;
+      }
+
+      if (
+        recipient.toLowerCase() ===
+        account.toLowerCase()
+      ) {
+        setStatus(
+          "You cannot transfer to yourself."
+        );
+        return;
+      }
+
+      const card =
+        cards.find(
+          (item) =>
+            item.tokenId ===
+            tokenId
+        );
+
+      if (!card) {
+        setStatus(
+          "Card not found."
+        );
+        return;
+      }
+
+      if (
+        card.owner.toLowerCase() !==
+        account.toLowerCase()
+      ) {
+        setStatus(
+          "Only the owner can transfer this card."
+        );
+        return;
+      }
+
+      if (card.listed) {
+        setStatus(
+          "Cancel the marketplace listing before transferring."
+        );
+        return;
+      }
+
+      setLoading(true);
+
+      const provider =
+        new ethers.BrowserProvider(
+          window.ethereum
+        );
+
+      const signer =
+        await provider.getSigner();
+
+      const gameCard =
+        new ethers.Contract(
+          GAME_CARD_ADDRESS,
+          GAME_CARD_ABI,
+          signer
+        );
+
+      setStatus(
+        `Transferring ${card.name}...`
+      );
+
+      const tx =
+        await gameCard.transferFrom(
+          account,
+          recipient,
+          tokenId
+        );
+
+      setStatus(
+        "Transfer submitted. Waiting for confirmation..."
+      );
+
+      await tx.wait();
+
+      setStatus(
+        `${card.name} transferred to ${shortenAddress(
+          recipient
+        )}!`
+      );
+
+      setTransferCardId(null);
+      setRecipientAddress("");
+      setSelectedCard(null);
+
+      await loadCards(
+        account
+      );
+
       await loadActivity();
     } catch (error: any) {
       console.error(error);
@@ -826,11 +1274,11 @@ function App() {
           "ACTION_REJECTED"
       ) {
         setStatus(
-          "Transaction rejected in MetaMask."
+          "Transfer rejected."
         );
       } else {
         setStatus(
-          "Failed to remove the card from the marketplace."
+          "Transfer failed."
         );
       }
     } finally {
@@ -838,42 +1286,53 @@ function App() {
     }
   }
 
-  function handleImageError(
-    event: SyntheticEvent<
-      HTMLImageElement
-    >,
+  /*
+   * =====================================================
+   * IMAGE FALLBACK
+   * =====================================================
+   */
+
+  function imageError(
+    event: SyntheticEvent<HTMLImageElement>,
     tokenId: number
   ) {
     const image =
       event.currentTarget;
 
-    const currentGateway =
+    const current =
       Number(
         image.dataset.gateway ||
           "0"
       );
 
-    const nextGateway =
-      currentGateway + 1;
+    const next =
+      current + 1;
 
     if (
-      nextGateway <
+      next <
       IPFS_GATEWAYS.length
     ) {
       image.dataset.gateway =
-        String(nextGateway);
+        String(next);
 
-      image.src =
-        getGatewayUrl(
-          IMAGE_CIDS[tokenId],
-          nextGateway
-        );
+      image.src = ipfsUrl(
+        IMAGE_CIDS[tokenId],
+        next
+      );
     }
   }
 
+  /*
+   * =====================================================
+   * INITIALIZE
+   * =====================================================
+   */
+
   useEffect(() => {
     async function initialize() {
-      if (!window.ethereum) return;
+      if (!window.ethereum) {
+        return;
+      }
 
       try {
         const provider =
@@ -889,7 +1348,7 @@ function App() {
 
         await loadActivity();
 
-        if (accounts.length > 0) {
+        if (accounts.length) {
           setAccount(
             accounts[0]
           );
@@ -906,8 +1365,16 @@ function App() {
     initialize();
   }, []);
 
+  /*
+   * =====================================================
+   * ACCOUNT CHANGE
+   * =====================================================
+   */
+
   useEffect(() => {
-    if (!window.ethereum) return;
+    if (!window.ethereum) {
+      return;
+    }
 
     const handleAccountsChanged =
       (accounts: string[]) => {
@@ -916,7 +1383,7 @@ function App() {
         setCards([]);
         setSelectedCard(null);
 
-        if (accounts.length === 0) {
+        if (!accounts.length) {
           setAccount("");
 
           setStatus(
@@ -926,19 +1393,16 @@ function App() {
           return;
         }
 
-        const newAccount =
-          accounts[0];
-
         setAccount(
-          newAccount
+          accounts[0]
         );
 
         setStatus(
-          "Loading collection for the new wallet..."
+          "Loading new wallet collection..."
         );
 
         loadCards(
-          newAccount
+          accounts[0]
         );
 
         loadActivity();
@@ -957,26 +1421,35 @@ function App() {
     };
   }, []);
 
-  function filterAndSortCards(
-    cardList: Card[]
+  /*
+   * =====================================================
+   * FILTERS
+   * =====================================================
+   */
+
+  function filterCards(
+    input: Card[]
   ) {
-    let result = [...cardList];
+    let result = [
+      ...input,
+    ];
 
     if (searchTerm.trim()) {
       const search =
         searchTerm
-          .trim()
-          .toLowerCase();
+          .toLowerCase()
+          .trim();
 
-      result = result.filter(
-        (card) =>
-          card.name
-            .toLowerCase()
-            .includes(search) ||
-          card.description
-            .toLowerCase()
-            .includes(search)
-      );
+      result =
+        result.filter(
+          (card) =>
+            card.name
+              .toLowerCase()
+              .includes(search) ||
+            card.description
+              .toLowerCase()
+              .includes(search)
+        );
     }
 
     if (
@@ -991,113 +1464,157 @@ function App() {
         );
     }
 
-    switch (sortOption) {
-      case "price-low":
-        result.sort(
-          (a, b) =>
-            Number(a.price) -
-            Number(b.price)
-        );
-        break;
+    if (
+      sortOption ===
+      "price-low"
+    ) {
+      result.sort(
+        (a, b) =>
+          Number(a.price) -
+          Number(b.price)
+      );
+    }
 
-      case "price-high":
-        result.sort(
-          (a, b) =>
-            Number(b.price) -
-            Number(a.price)
-        );
-        break;
+    if (
+      sortOption ===
+      "price-high"
+    ) {
+      result.sort(
+        (a, b) =>
+          Number(b.price) -
+          Number(a.price)
+      );
+    }
 
-      case "attack-high":
-        result.sort(
-          (a, b) =>
-            b.attack -
-            a.attack
-        );
-        break;
+    if (
+      sortOption ===
+      "attack-high"
+    ) {
+      result.sort(
+        (a, b) =>
+          b.attack -
+          a.attack
+      );
+    }
 
-      case "defense-high":
-        result.sort(
-          (a, b) =>
-            b.defense -
-            a.defense
-        );
-        break;
-
-      default:
-        break;
+    if (
+      sortOption ===
+      "defense-high"
+    ) {
+      result.sort(
+        (a, b) =>
+          b.defense -
+          a.defense
+      );
     }
 
     return result;
   }
 
-  function resetFilters() {
-    setSearchTerm("");
-    setRarityFilter("All");
-    setSortOption("default");
-  }
+  const ownedCards =
+    cards.filter(
+      (card) =>
+        account &&
+        card.owner.toLowerCase() ===
+          account.toLowerCase()
+    );
 
   const marketplaceCards =
-    filterAndSortCards(
-      cards.filter(
-        (card) =>
-          card.listed
-      )
+    cards.filter(
+      (card) =>
+        card.listed
     );
 
-  const ownedCards =
-    filterAndSortCards(
-      cards.filter(
-        (card) =>
-          account &&
-          card.owner.toLowerCase() ===
-            account.toLowerCase()
-      )
+  const visibleOwnedCards =
+    filterCards(
+      ownedCards
     );
 
-  const cardStyle: CSSProperties = {
+  const visibleMarketplaceCards =
+    filterCards(
+      marketplaceCards
+    );
+
+  const totalCards =
+    ownedCards.length;
+
+  const commonCount =
+    ownedCards.filter(
+      (card) =>
+        card.rarity ===
+        "Common"
+    ).length;
+
+  const rareCount =
+    ownedCards.filter(
+      (card) =>
+        card.rarity ===
+        "Rare"
+    ).length;
+
+  const epicCount =
+    ownedCards.filter(
+      (card) =>
+        card.rarity ===
+        "Epic"
+    ).length;
+
+  const legendaryCount =
+    ownedCards.filter(
+      (card) =>
+        card.rarity ===
+        "Legendary"
+    ).length;
+
+  const mythicCount =
+    ownedCards.filter(
+      (card) =>
+        card.rarity ===
+        "Mythic"
+    ).length;
+
+  const totalAttack =
+    ownedCards.reduce(
+      (sum, card) =>
+        sum + card.attack,
+      0
+    );
+
+  const totalDefense =
+    ownedCards.reduce(
+      (sum, card) =>
+        sum + card.defense,
+      0
+    );
+
+  const averageAttack =
+    totalCards > 0
+      ? (
+          totalAttack /
+          totalCards
+        ).toFixed(1)
+      : "0";
+
+  const averageDefense =
+    totalCards > 0
+      ? (
+          totalDefense /
+          totalCards
+        ).toFixed(1)
+      : "0";
+
+  const cardStyle:
+    CSSProperties = {
     width: "340px",
-    minHeight: "520px",
     overflow: "hidden",
-    borderRadius: "16px",
-    display: "flex",
-    flexDirection: "column",
     cursor: "pointer",
   };
 
-  const imageContainerStyle: CSSProperties =
-    {
-      width: "100%",
-      height: "260px",
-      minHeight: "260px",
-      overflow: "hidden",
-      position: "relative",
-      borderRadius:
-        "14px 14px 0 0",
-    };
-
-  const imageStyle: CSSProperties = {
-    width: "100%",
-    height: "100%",
-    display: "block",
-    objectFit: "cover",
-    objectPosition: "center",
-  };
-
-  const informationStyle: CSSProperties =
-    {
-      padding: "22px",
-      minHeight: "240px",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent:
-        "space-between",
-    };
-
-  const gridStyle: CSSProperties = {
+  const gridStyle:
+    CSSProperties = {
     display: "grid",
     gridTemplateColumns:
-      "repeat(auto-fit, minmax(340px, 340px))",
+      "repeat(auto-fit, minmax(320px, 340px))",
     justifyContent: "center",
     gap: "28px",
     width: "100%",
@@ -1113,9 +1630,9 @@ function App() {
             MythicForge
           </h1>
 
-          <p className="header-subtitle">
-            Decentralized Game Card
-            Marketplace
+          <p>
+            Decentralized Game
+            Card Marketplace
           </p>
         </div>
 
@@ -1137,55 +1654,75 @@ function App() {
 
       </header>
 
-      <main>
+      <section className="hero">
 
-        <section className="hero">
+        <h2>
+          MythicForge
+        </h2>
 
-          <h2>
-            MythicForge
-          </h2>
+        <p>
+          Collect, trade, and
+          own blockchain game
+          cards.
+        </p>
 
-          <p>
-            Collect, trade, and own
-            blockchain game cards.
-          </p>
+        <p className="network">
+          Ethereum Sepolia
+          Testnet
+        </p>
 
-          <p className="network">
-            Ethereum Sepolia Testnet
-          </p>
+      </section>
 
-        </section>
+      {status && (
+        <div className="status">
+          {status}
+        </div>
+      )}
 
-        {status && (
-          <div className="status">
-            {status}
-          </div>
-        )}
+      {/* MARKETPLACE */}
 
-        {/* MARKETPLACE */}
+      <section className="card-section">
 
-        <section className="marketplace-section">
+        <div
+          style={{
+            width: "100%",
+            maxWidth:
+              "1100px",
+          }}
+        >
 
           <div className="section-title">
 
-            <div>
-              <h2>
-                Marketplace
-              </h2>
+            <h2>
+              Marketplace
+            </h2>
 
-              <p>
-                Game cards currently
-                available for purchase
-              </p>
-            </div>
+            <p>
+              Game cards
+              available for
+              purchase
+            </p>
 
           </div>
 
-          <div className="filter-bar">
+          <div
+            className="filter-bar"
+            style={{
+              display:
+                "flex",
+              justifyContent:
+                "center",
+              gap: "10px",
+              flexWrap:
+                "wrap",
+              marginBottom:
+                "30px",
+            }}
+          >
 
             <input
-              type="text"
               className="search-input"
+              type="text"
               placeholder="🔎 Search cards..."
               value={
                 searchTerm
@@ -1207,7 +1744,6 @@ function App() {
                 )
               }
             >
-
               <option value="All">
                 All Rarities
               </option>
@@ -1231,7 +1767,6 @@ function App() {
               <option value="Mythic">
                 Mythic
               </option>
-
             </select>
 
             <select
@@ -1244,7 +1779,6 @@ function App() {
                 )
               }
             >
-
               <option value="default">
                 Sort By
               </option>
@@ -1264,60 +1798,56 @@ function App() {
               <option value="defense-high">
                 Defense: High → Low
               </option>
-
             </select>
 
-            {(searchTerm ||
+            {(
+              searchTerm ||
               rarityFilter !==
                 "All" ||
               sortOption !==
-                "default") && (
-
+                "default"
+            ) && (
               <button
-                className="reset-button"
-                onClick={
-                  resetFilters
-                }
+                onClick={() => {
+                  setSearchTerm(
+                    ""
+                  );
+
+                  setRarityFilter(
+                    "All"
+                  );
+
+                  setSortOption(
+                    "default"
+                  );
+                }}
               >
                 Reset
               </button>
-
             )}
 
           </div>
 
           {loadingCards ? (
-
-            <div className="loading">
-              Loading cards from
-              blockchain...
+            <div className="status">
+              Loading cards...
             </div>
-
-          ) : marketplaceCards.length ===
-            0 ? (
-
-            <div className="empty-state">
-              No cards match your
-              search or filter.
-            </div>
-
           ) : (
-
             <div
-              className="cards-grid"
-              style={gridStyle}
+              style={
+                gridStyle
+              }
             >
 
-              {marketplaceCards.map(
+              {visibleMarketplaceCards.map(
                 (card) => (
-
                   <div
-                    className={`game-card ${getRarityClass(
-                      card.rarity
-                    )}`}
                     key={
                       card.tokenId
                     }
+                    className={`game-card ${rarityClass(
+                      card.rarity
+                    )}`}
                     style={
                       cardStyle
                     }
@@ -1329,10 +1859,14 @@ function App() {
                   >
 
                     <div
-                      className="card-image"
-                      style={
-                        imageContainerStyle
-                      }
+                      style={{
+                        height:
+                          "260px",
+                        overflow:
+                          "hidden",
+                        position:
+                          "relative",
+                      }}
                     >
 
                       <img
@@ -1343,17 +1877,24 @@ function App() {
                           card.name
                         }
                         data-gateway="0"
-                        style={
-                          imageStyle
-                        }
                         onError={(
                           event
                         ) =>
-                          handleImageError(
+                          imageError(
                             event,
                             card.tokenId
                           )
                         }
+                        style={{
+                          width:
+                            "100%",
+                          height:
+                            "100%",
+                          objectFit:
+                            "cover",
+                          display:
+                            "block",
+                        }}
                       />
 
                       <span className="token-id">
@@ -1366,76 +1907,84 @@ function App() {
                     </div>
 
                     <div
-                      className="card-content"
-                      style={
-                        informationStyle
-                      }
+                      style={{
+                        padding:
+                          "20px",
+                      }}
                     >
 
-                      <div>
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          justifyContent:
+                            "space-between",
+                          alignItems:
+                            "center",
+                        }}
+                      >
 
-                        <div className="card-heading">
-
-                          <h3>
-                            {
-                              card.name
-                            }
-                          </h3>
-
-                          <span
-                            className={`rarity ${getRarityClass(
-                              card.rarity
-                            )}`}
-                          >
-                            {
-                              card.rarity
-                            }
-                          </span>
-
-                        </div>
-
-                        <p className="description">
+                        <h2>
                           {
-                            card.description
+                            card.name
                           }
-                        </p>
+                        </h2>
 
-                        <div className="stats">
-
-                          <span>
-                            Attack:{" "}
-                            {
-                              card.attack
-                            }
-                          </span>
-
-                          <span>
-                            Defense:{" "}
-                            {
-                              card.defense
-                            }
-                          </span>
-
-                        </div>
+                        <span
+                          className={`rarity ${rarityClass(
+                            card.rarity
+                          )}`}
+                        >
+                          {
+                            card.rarity
+                          }
+                        </span>
 
                       </div>
 
-                      <div className="price-row">
+                      <p>
+                        {
+                          card.description
+                        }
+                      </p>
 
-                        <div>
+                      <div className="stats">
 
-                          <small>
-                            Price
-                          </small>
+                        <span>
+                          Attack:{" "}
+                          {
+                            card.attack
+                          }
+                        </span>
 
-                          <strong>
-                            {
-                              card.price
-                            }{" "}
-                            ETH
-                          </strong>
+                        <span>
+                          Defense:{" "}
+                          {
+                            card.defense
+                          }
+                        </span>
 
-                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          justifyContent:
+                            "space-between",
+                          alignItems:
+                            "center",
+                          marginTop:
+                            "20px",
+                        }}
+                      >
+
+                        <strong>
+                          {
+                            card.price
+                          }{" "}
+                          ETH
+                        </strong>
 
                         <button
                           className="buy-button"
@@ -1462,69 +2011,300 @@ function App() {
                     </div>
 
                   </div>
-
                 )
               )}
 
             </div>
-
           )}
 
-        </section>
+          {!loadingCards &&
+            visibleMarketplaceCards.length ===
+              0 && (
+              <div className="status">
+                No cards are
+                currently listed
+                on the
+                marketplace.
+              </div>
+            )}
 
-        {/* MY COLLECTION */}
+        </div>
 
-        <section className="collection-section">
+      </section>
+
+      {/* MY COLLECTION */}
+
+      <section
+        className="card-section"
+        style={{
+          paddingTop:
+            "70px",
+        }}
+      >
+
+        <div
+          style={{
+            width: "100%",
+            maxWidth:
+              "1100px",
+          }}
+        >
 
           <div className="section-title">
 
-            <div>
+            <h2>
+              My Collection
+            </h2>
 
-              <h2>
-                My Collection
-              </h2>
-
-              <p>
-                Game cards owned by
-                your connected wallet
-              </p>
-
-            </div>
+            <p>
+              Your blockchain
+              game cards
+            </p>
 
           </div>
 
-          {!account ? (
-
-            <div className="empty-state">
-              Connect MetaMask to
-              view your collection.
-            </div>
-
-          ) : ownedCards.length ===
-            0 ? (
-
-            <div className="empty-state">
-              No cards match your
-              search or filter.
-            </div>
-
-          ) : (
-
+          {account && (
             <div
-              className="cards-grid"
-              style={gridStyle}
+              style={{
+                margin:
+                  "25px auto 40px",
+                padding:
+                  "25px",
+                background:
+                  "#171720",
+                border:
+                  "1px solid #30303d",
+                borderRadius:
+                  "18px",
+                maxWidth:
+                  "1000px",
+              }}
             >
 
-              {ownedCards.map(
-                (card) => (
+              <h3
+                style={{
+                  textAlign:
+                    "center",
+                  marginTop:
+                    0,
+                  marginBottom:
+                    "25px",
+                }}
+              >
+                📊 Collection
+                Statistics
+              </h3>
 
+              <div
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(140px, 1fr))",
+                  gap:
+                    "14px",
+                }}
+              >
+
+                <div className="collection-stat">
+
+                  <span>
+                    🃏
+                  </span>
+
+                  <strong>
+                    {
+                      totalCards
+                    }
+                  </strong>
+
+                  <small>
+                    Cards Owned
+                  </small>
+
+                </div>
+
+                <div className="collection-stat">
+
+                  <span>
+                    ⚔️
+                  </span>
+
+                  <strong>
+                    {
+                      totalAttack
+                    }
+                  </strong>
+
+                  <small>
+                    Total Attack
+                  </small>
+
+                </div>
+
+                <div className="collection-stat">
+
+                  <span>
+                    🛡️
+                  </span>
+
+                  <strong>
+                    {
+                      totalDefense
+                    }
+                  </strong>
+
+                  <small>
+                    Total Defense
+                  </small>
+
+                </div>
+
+                <div className="collection-stat">
+
+                  <span>
+                    ⚔️
+                  </span>
+
+                  <strong>
+                    {
+                      averageAttack
+                    }
+                  </strong>
+
+                  <small>
+                    Avg Attack
+                  </small>
+
+                </div>
+
+                <div className="collection-stat">
+
+                  <span>
+                    🛡️
+                  </span>
+
+                  <strong>
+                    {
+                      averageDefense
+                    }
+                  </strong>
+
+                  <small>
+                    Avg Defense
+                  </small>
+
+                </div>
+
+              </div>
+
+              <div
+                style={{
+                  marginTop:
+                    "25px",
+                  paddingTop:
+                    "20px",
+                  borderTop:
+                    "1px solid #30303d",
+                }}
+              >
+
+                <h4
+                  style={{
+                    textAlign:
+                      "center",
+                    marginBottom:
+                      "15px",
+                  }}
+                >
+                  Rarity
+                  Breakdown
+                </h4>
+
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    justifyContent:
+                      "center",
+                    gap:
+                      "10px",
+                    flexWrap:
+                      "wrap",
+                  }}
+                >
+
+                  <div className="rarity-count common">
+                    Common:{" "}
+                    {
+                      commonCount
+                    }
+                  </div>
+
+                  <div className="rarity-count rare">
+                    Rare:{" "}
+                    {
+                      rareCount
+                    }
+                  </div>
+
+                  <div className="rarity-count epic">
+                    Epic:{" "}
+                    {
+                      epicCount
+                    }
+                  </div>
+
+                  <div className="rarity-count legendary">
+                    Legendary:{" "}
+                    {
+                      legendaryCount
+                    }
+                  </div>
+
+                  <div className="rarity-count mythic">
+                    Mythic:{" "}
+                    {
+                      mythicCount
+                    }
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+          {!account ? (
+            <div className="status">
+              Connect MetaMask
+              to view your
+              collection.
+            </div>
+          ) : visibleOwnedCards.length ===
+            0 ? (
+            <div className="status">
+              No cards match
+              your current
+              filters.
+            </div>
+          ) : (
+            <div
+              style={
+                gridStyle
+              }
+            >
+
+              {visibleOwnedCards.map(
+                (card) => (
                   <div
-                    className={`game-card owned-card ${getRarityClass(
-                      card.rarity
-                    )}`}
                     key={
                       card.tokenId
                     }
+                    className={`game-card owned-card ${rarityClass(
+                      card.rarity
+                    )}`}
                     style={
                       cardStyle
                     }
@@ -1536,10 +2316,14 @@ function App() {
                   >
 
                     <div
-                      className="card-image"
-                      style={
-                        imageContainerStyle
-                      }
+                      style={{
+                        height:
+                          "260px",
+                        overflow:
+                          "hidden",
+                        position:
+                          "relative",
+                      }}
                     >
 
                       <img
@@ -1550,17 +2334,24 @@ function App() {
                           card.name
                         }
                         data-gateway="0"
-                        style={
-                          imageStyle
-                        }
                         onError={(
                           event
                         ) =>
-                          handleImageError(
+                          imageError(
                             event,
                             card.tokenId
                           )
                         }
+                        style={{
+                          width:
+                            "100%",
+                          height:
+                            "100%",
+                          objectFit:
+                            "cover",
+                          display:
+                            "block",
+                        }}
                       />
 
                       <span className="token-id">
@@ -1573,84 +2364,171 @@ function App() {
                     </div>
 
                     <div
-                      className="card-content"
-                      style={
-                        informationStyle
-                      }
+                      style={{
+                        padding:
+                          "20px",
+                      }}
                     >
 
-                      <div>
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          justifyContent:
+                            "space-between",
+                          alignItems:
+                            "center",
+                        }}
+                      >
 
-                        <div className="card-heading">
-
-                          <h3>
-                            {
-                              card.name
-                            }
-                          </h3>
-
-                          <span
-                            className={`rarity ${getRarityClass(
-                              card.rarity
-                            )}`}
-                          >
-                            {
-                              card.rarity
-                            }
-                          </span>
-
-                        </div>
-
-                        <p className="description">
+                        <h2>
                           {
-                            card.description
+                            card.name
                           }
-                        </p>
+                        </h2>
 
-                        <div className="stats">
-
-                          <span>
-                            Attack:{" "}
-                            {
-                              card.attack
-                            }
-                          </span>
-
-                          <span>
-                            Defense:{" "}
-                            {
-                              card.defense
-                            }
-                          </span>
-
-                        </div>
+                        <span
+                          className={`rarity ${rarityClass(
+                            card.rarity
+                          )}`}
+                        >
+                          {
+                            card.rarity
+                          }
+                        </span>
 
                       </div>
 
-                      <div className="owned-actions">
+                      <p>
+                        {
+                          card.description
+                        }
+                      </p>
 
-                        <div className="owned-label">
-                          OWNED BY YOU
+                      <div className="stats">
+
+                        <span>
+                          Attack:{" "}
+                          {
+                            card.attack
+                          }
+                        </span>
+
+                        <span>
+                          Defense:{" "}
+                          {
+                            card.defense
+                          }
+                        </span>
+
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop:
+                            "20px",
+                        }}
+                      >
+
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            gap:
+                              "8px",
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              flex:
+                                1,
+                              padding:
+                                "12px",
+                              background:
+                                "#242431",
+                              borderRadius:
+                                "8px",
+                              textAlign:
+                                "center",
+                              fontSize:
+                                "12px",
+                              fontWeight:
+                                "bold",
+                            }}
+                          >
+                            OWNED BY YOU
+                          </div>
+
+                          <button
+                            className="sell-button"
+                            style={{
+                              flex:
+                                1,
+                            }}
+                            onClick={(
+                              event
+                            ) => {
+                              event.stopPropagation();
+
+                              sellCard(
+                                card.tokenId
+                              );
+                            }}
+                            disabled={
+                              loading
+                            }
+                          >
+                            {loading
+                              ? "..."
+                              : "Sell"}
+                          </button>
+
                         </div>
 
                         <button
-                          className="sell-button"
+                          className="transfer-button"
+                          style={{
+                            width:
+                              "100%",
+                            marginTop:
+                              "8px",
+                            padding:
+                              "12px",
+                            border:
+                              "none",
+                            borderRadius:
+                              "8px",
+                            background:
+                              "#3b82f6",
+                            color:
+                              "white",
+                            fontWeight:
+                              "bold",
+                            cursor:
+                              "pointer",
+                          }}
                           onClick={(
                             event
                           ) => {
                             event.stopPropagation();
 
-                            sellCard(
+                            setTransferCardId(
                               card.tokenId
+                            );
+
+                            setRecipientAddress(
+                              ""
                             );
                           }}
                           disabled={
-                            loading
+                            loading ||
+                            card.listed
                           }
                         >
-                          {loading
-                            ? "Processing..."
-                            : "Sell"}
+                          {card.listed
+                            ? "Cancel Listing First"
+                            : "Transfer"}
                         </button>
 
                       </div>
@@ -1658,49 +2536,54 @@ function App() {
                     </div>
 
                   </div>
-
                 )
               )}
 
             </div>
-
           )}
 
-        </section>
+        </div>
 
-        {/* RECENT ACTIVITY */}
+      </section>
 
-        <section className="activity-section">
+      {/* RECENT ACTIVITY */}
+
+      <section
+        className="card-section"
+        style={{
+          paddingTop:
+            "70px",
+        }}
+      >
+
+        <div
+          style={{
+            width: "100%",
+            maxWidth:
+              "900px",
+          }}
+        >
 
           <div className="section-title">
 
-            <div>
+            <h2>
+              Recent Activity
+            </h2>
 
-              <h2>
-                Recent Activity
-              </h2>
-
-              <p>
-                Marketplace activity
-                recorded on Ethereum
-                Sepolia
-              </p>
-
-            </div>
+            <p>
+              Marketplace activity
+            </p>
 
           </div>
 
           {activities.length ===
           0 ? (
-
-            <div className="empty-state">
-              No marketplace activity
-              found.
+            <div className="status">
+              No marketplace
+              activity yet.
             </div>
-
           ) : (
-
-            <div className="activity-list">
+            <div>
 
               {activities
                 .slice(0, 10)
@@ -1709,81 +2592,65 @@ function App() {
                     activity,
                     index
                   ) => (
-
                     <div
-                      className="activity-item"
                       key={
                         activity.transactionHash +
                         index
                       }
+                      style={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "space-between",
+                        alignItems:
+                          "center",
+                        gap:
+                          "20px",
+                        padding:
+                          "18px",
+                        marginBottom:
+                          "10px",
+                        background:
+                          "#171720",
+                        border:
+                          "1px solid #30303d",
+                        borderRadius:
+                          "12px",
+                      }}
                     >
 
-                      <div className="activity-main">
+                      <div>
 
-                        <div className="activity-type">
+                        <strong>
+                          {activity.type ===
+                          "LISTED"
+                            ? "🏷️ Listed"
+                            : activity.type ===
+                              "SOLD"
+                            ? "🛒 Sold"
+                            : "↩️ Unlisted"}
+                        </strong>
+
+                        <p>
                           {
-                            activity.type
+                            activity.cardName
+                          }{" "}
+                          #
+                          {
+                            activity.tokenId
                           }
-                        </div>
+                        </p>
 
-                        <div>
-
-                          <h3>
-                            {
-                              activity.cardName
-                            }{" "}
-                            #
-                            {
-                              activity.tokenId
-                            }
-                          </h3>
-
-                          {activity.type !==
-                            "UNLISTED" && (
-                            <p>
-                              Price:{" "}
-                              {
-                                activity.price
-                              }{" "}
-                              ETH
-                            </p>
-                          )}
-
+                        {activity.type !==
+                          "UNLISTED" && (
                           <p>
-                            Seller:{" "}
+                            Price:{" "}
                             {
-                              activity.seller.slice(
-                                0,
-                                6
-                              )
-                            }
-                            ...
-                            {
-                              activity.seller.slice(
-                                -4
-                              )
-                            }
+                              activity.price
+                            }{" "}
+                            ETH
                           </p>
-
-                          {activity.buyer && (
-                            <p>
-                              Buyer:{" "}
-                              {
-                                activity.buyer.slice(
-                                  0,
-                                  6
-                                )
-                              }
-                              ...
-                              {
-                                activity.buyer.slice(
-                                  -4
-                                )
-                              }
-                            </p>
-                          )}
-
-                        </div>
+                        )}
 
                       </div>
 
@@ -1791,122 +2658,87 @@ function App() {
                         href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="transaction-link"
-                        onClick={(
-                          event
-                        ) =>
-                          event.stopPropagation()
-                        }
                       >
-                        View Transaction
+                        View
+                        Transaction ↗
                       </a>
 
                     </div>
-
                   )
                 )}
 
             </div>
-
           )}
 
-        </section>
+        </div>
 
-        {/* ABOUT */}
+      </section>
 
-        <section className="info-section">
+      {/* ABOUT */}
 
-          <h2>
-            About MythicForge
-          </h2>
+      <section
+        className="info-section"
+        style={{
+          maxWidth:
+            "900px",
+          margin:
+            "60px auto",
+        }}
+      >
 
-          <p>
-            MythicForge is a
-            decentralized game-card
-            marketplace powered by
-            Ethereum Sepolia. Each
-            game card is an ERC-721 NFT
-            with unique attributes and
-            IPFS-based metadata.
-          </p>
+        <h2>
+          About MythicForge
+        </h2>
 
-          <div className="contract-info">
+        <p>
+          MythicForge is a
+          decentralized
+          game-card
+          marketplace powered
+          by Ethereum Sepolia.
+          Each game card is an
+          ERC-721 NFT with
+          unique attributes
+          and IPFS-based
+          metadata.
+        </p>
 
-            <div>
+        <p>
+          GameCard Contract:
+        </p>
 
-              <span>
-                GameCard Contract
-              </span>
+        <code>
+          {
+            GAME_CARD_ADDRESS
+          }
+        </code>
 
-              <code>
-                {
-                  GAME_CARD_ADDRESS
-                }
-              </code>
+        <p>
+          Marketplace Contract:
+        </p>
 
-            </div>
+        <code>
+          {
+            MARKETPLACE_ADDRESS
+          }
+        </code>
 
-            <div>
-
-              <span>
-                Marketplace Contract
-              </span>
-
-              <code>
-                {
-                  MARKETPLACE_ADDRESS
-                }
-              </code>
-
-            </div>
-
-          </div>
-
-          <div className="ipfs-info">
-
-            <h3>
-              IPFS Metadata
-            </h3>
-
-            <p>
-              Each game card stores
-              its metadata and image
-              using IPFS.
-            </p>
-
-            <a
-              href={getGatewayUrl(
-                METADATA_CIDS[1],
-                0
-              )}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View Flame Dragon
-              metadata
-            </a>
-
-          </div>
-
-        </section>
-
-      </main>
+      </section>
 
       {/* CARD DETAILS MODAL */}
 
       {selectedCard && (
-
         <div
           className="modal-overlay"
           onClick={() =>
-            setSelectedCard(null)
+            setSelectedCard(
+              null
+            )
           }
         >
 
           <div
-            className={`card-modal ${getRarityClass(
-              selectedCard.rarity
-            )}`}
+            className="card-modal"
             onClick={(event) =>
               event.stopPropagation()
             }
@@ -1915,7 +2747,9 @@ function App() {
             <button
               className="modal-close"
               onClick={() =>
-                setSelectedCard(null)
+                setSelectedCard(
+                  null
+                )
               }
             >
               ×
@@ -1932,7 +2766,7 @@ function App() {
                 }
                 data-gateway="0"
                 onError={(event) =>
-                  handleImageError(
+                  imageError(
                     event,
                     selectedCard.tokenId
                   )
@@ -1943,7 +2777,16 @@ function App() {
 
             <div className="modal-content">
 
-              <div className="modal-title-row">
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                }}
+              >
 
                 <div>
 
@@ -1953,7 +2796,7 @@ function App() {
                     }
                   </h2>
 
-                  <span className="modal-token">
+                  <span>
                     Token #
                     {
                       selectedCard.tokenId
@@ -1963,7 +2806,7 @@ function App() {
                 </div>
 
                 <span
-                  className={`rarity ${getRarityClass(
+                  className={`rarity ${rarityClass(
                     selectedCard.rarity
                   )}`}
                 >
@@ -1974,7 +2817,7 @@ function App() {
 
               </div>
 
-              <p className="modal-description">
+              <p>
                 {
                   selectedCard.description
                 }
@@ -1982,7 +2825,7 @@ function App() {
 
               <div className="modal-stats">
 
-                <div className="modal-stat">
+                <div>
 
                   <span>
                     Attack
@@ -1996,7 +2839,7 @@ function App() {
 
                 </div>
 
-                <div className="modal-stat">
+                <div>
 
                   <span>
                     Defense
@@ -2040,78 +2883,7 @@ function App() {
 
               </div>
 
-              {/* TRANSACTION HISTORY */}
-
-              <div className="card-history">
-
-                <div className="card-history-header">
-                  <h3>Transaction History</h3>
-                  <span>
-                    {getCardHistory(selectedCard.tokenId).length}{" "}
-                    event{getCardHistory(selectedCard.tokenId).length === 1 ? "" : "s"}
-                  </span>
-                </div>
-
-                {getCardHistory(selectedCard.tokenId).length === 0 ? (
-                  <div className="history-empty">
-                    No marketplace transactions recorded for this card yet.
-                  </div>
-                ) : (
-                  <div className="history-list">
-                    {getCardHistory(selectedCard.tokenId).map((activity, index) => (
-                      <div
-                        className={`history-item history-${activity.type.toLowerCase()}`}
-                        key={activity.transactionHash + "-history-" + index}
-                      >
-                        <div className="history-icon">
-                          {activity.type === "LISTED"
-                            ? "🏷️"
-                            : activity.type === "SOLD"
-                            ? "🛒"
-                            : "↩️"}
-                        </div>
-
-                        <div className="history-details">
-                          <div className="history-top">
-                            <strong>
-                              {activity.type === "LISTED"
-                                ? "Listed"
-                                : activity.type === "SOLD"
-                                ? "Sold"
-                                : "Unlisted"}
-                            </strong>
-
-                            {activity.type !== "UNLISTED" && (
-                              <span>{activity.price} ETH</span>
-                            )}
-                          </div>
-
-                          <p>
-                            Seller: {shortenAddress(activity.seller)}
-                          </p>
-
-                          {activity.buyer && (
-                            <p>
-                              Buyer: {shortenAddress(activity.buyer)}
-                            </p>
-                          )}
-
-                          <a
-                            href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            View transaction ↗
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {selectedCard.listed && (
-
                 <div className="modal-price">
 
                   <span>
@@ -2126,36 +2898,149 @@ function App() {
                   </strong>
 
                 </div>
-
               )}
+
+              <div className="card-history">
+
+                <div className="card-history-header">
+
+                  <h3>
+                    Transaction
+                    History
+                  </h3>
+
+                  <span>
+                    {
+                      getCardHistory(
+                        selectedCard.tokenId
+                      ).length
+                    }{" "}
+                    events
+                  </span>
+
+                </div>
+
+                {getCardHistory(
+                  selectedCard.tokenId
+                ).length === 0 ? (
+                  <div className="history-empty">
+                    No marketplace
+                    transactions yet.
+                  </div>
+                ) : (
+                  <div className="history-list">
+
+                    {getCardHistory(
+                      selectedCard.tokenId
+                    ).map(
+                      (
+                        activity,
+                        index
+                      ) => (
+                        <div
+                          className="history-item"
+                          key={
+                            activity.transactionHash +
+                            index
+                          }
+                        >
+
+                          <div className="history-icon">
+
+                            {activity.type ===
+                            "LISTED"
+                              ? "🏷️"
+                              : activity.type ===
+                                "SOLD"
+                              ? "🛒"
+                              : "↩️"}
+
+                          </div>
+
+                          <div className="history-details">
+
+                            <strong>
+                              {activity.type ===
+                              "LISTED"
+                                ? "Listed"
+                                : activity.type ===
+                                  "SOLD"
+                                ? "Sold"
+                                : "Unlisted"}
+                            </strong>
+
+                            {activity.type !==
+                              "UNLISTED" && (
+                              <p>
+                                Price:{" "}
+                                {
+                                  activity.price
+                                }{" "}
+                                ETH
+                              </p>
+                            )}
+
+                            <p>
+                              Seller:{" "}
+                              {shortenAddress(
+                                activity.seller
+                              )}
+                            </p>
+
+                            {activity.buyer && (
+                              <p>
+                                Buyer:{" "}
+                                {shortenAddress(
+                                  activity.buyer
+                                )}
+                              </p>
+                            )}
+
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              View
+                              transaction
+                              ↗
+                            </a>
+
+                          </div>
+
+                        </div>
+                      )
+                    )}
+
+                  </div>
+                )}
+
+              </div>
 
               <div className="modal-actions">
 
                 {selectedCard.listed &&
-                selectedCard.owner.toLowerCase() !==
-                  account.toLowerCase() && (
-
-                  <button
-                    className="modal-buy-button"
-                    onClick={() =>
-                      buyCard(
-                        selectedCard.tokenId
-                      )
-                    }
-                    disabled={
-                      loading
-                    }
-                  >
-                    {loading
-                      ? "Processing..."
-                      : `Buy for ${selectedCard.price} ETH`}
-                  </button>
-
-                )}
+                  selectedCard.owner.toLowerCase() !==
+                    account.toLowerCase() && (
+                    <button
+                      className="modal-buy-button"
+                      onClick={() =>
+                        buyCard(
+                          selectedCard.tokenId
+                        )
+                      }
+                      disabled={
+                        loading
+                      }
+                    >
+                      {loading
+                        ? "Processing..."
+                        : `Buy for ${selectedCard.price} ETH`}
+                    </button>
+                  )}
 
                 {selectedCard.owner.toLowerCase() ===
                   account.toLowerCase() && (
-
                   <>
 
                     <div className="modal-owned">
@@ -2163,7 +3048,6 @@ function App() {
                     </div>
 
                     {selectedCard.listed ? (
-
                       <button
                         className="modal-cancel-button"
                         onClick={() =>
@@ -2179,29 +3063,51 @@ function App() {
                           ? "Processing..."
                           : "Cancel Listing"}
                       </button>
-
                     ) : (
+                      <>
 
-                      <button
-                        className="modal-sell-button"
-                        onClick={() =>
-                          sellCard(
-                            selectedCard.tokenId
-                          )
-                        }
-                        disabled={
-                          loading
-                        }
-                      >
-                        {loading
-                          ? "Processing..."
-                          : "Sell Card"}
-                      </button>
+                        <button
+                          className="modal-sell-button"
+                          onClick={() =>
+                            sellCard(
+                              selectedCard.tokenId
+                            )
+                          }
+                          disabled={
+                            loading
+                          }
+                        >
+                          {loading
+                            ? "Processing..."
+                            : "Sell Card"}
+                        </button>
 
+                        <button
+                          className="modal-transfer-button"
+                          onClick={() => {
+                            setSelectedCard(
+                              null
+                            );
+
+                            setTransferCardId(
+                              selectedCard.tokenId
+                            );
+
+                            setRecipientAddress(
+                              ""
+                            );
+                          }}
+                          disabled={
+                            loading
+                          }
+                        >
+                          Transfer Card
+                        </button>
+
+                      </>
                     )}
 
                   </>
-
                 )}
 
               </div>
@@ -2211,7 +3117,157 @@ function App() {
           </div>
 
         </div>
+      )}
 
+      {/* TRANSFER MODAL */}
+
+      {transferCardId !==
+        null && (
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            if (!loading) {
+              setTransferCardId(
+                null
+              );
+
+              setRecipientAddress(
+                ""
+              );
+            }
+          }}
+        >
+
+          <div
+            className="transfer-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+            <button
+              className="modal-close"
+              onClick={() => {
+                if (!loading) {
+                  setTransferCardId(
+                    null
+                  );
+
+                  setRecipientAddress(
+                    ""
+                  );
+                }
+              }}
+            >
+              ×
+            </button>
+
+            <h2>
+              Transfer Card
+            </h2>
+
+            <p>
+              Transfer{" "}
+              <strong>
+                {
+                  getCardName(
+                    transferCardId
+                  )
+                }
+              </strong>{" "}
+              #
+              {
+                transferCardId
+              }{" "}
+              to another wallet.
+            </p>
+
+            <label>
+              Recipient Wallet
+              Address
+            </label>
+
+            <input
+              type="text"
+              placeholder="0x..."
+              value={
+                recipientAddress
+              }
+              onChange={(event) =>
+                setRecipientAddress(
+                  event.target.value
+                )
+              }
+              disabled={
+                loading
+              }
+            />
+
+            <p
+              style={{
+                fontSize:
+                  "13px",
+                opacity:
+                  0.7,
+              }}
+            >
+              This is a free NFT
+              transfer. Only
+              blockchain gas is
+              required.
+            </p>
+
+            <div
+              style={{
+                display:
+                  "flex",
+                gap:
+                  "10px",
+                marginTop:
+                  "20px",
+              }}
+            >
+
+              <button
+                onClick={() => {
+                  if (!loading) {
+                    setTransferCardId(
+                      null
+                    );
+
+                    setRecipientAddress(
+                      ""
+                    );
+                  }
+                }}
+                disabled={
+                  loading
+                }
+              >
+                Cancel
+              </button>
+
+              <button
+                className="modal-transfer-button"
+                onClick={() =>
+                  transferCard(
+                    transferCardId
+                  )
+                }
+                disabled={
+                  loading
+                }
+              >
+                {loading
+                  ? "Transferring..."
+                  : "Transfer Card"}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
       )}
 
     </div>
