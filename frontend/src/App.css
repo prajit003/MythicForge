@@ -616,6 +616,7 @@ button:disabled {
     padding: 22px;
   }
 }
+
 .owned-actions {
   display: flex;
   gap: 10px;
@@ -643,6 +644,7 @@ button:disabled {
 .sell-button:hover {
   opacity: 0.85;
 }
+
 /* =====================================================
    SEARCH / FILTER / SORT
    ===================================================== */
@@ -744,6 +746,7 @@ button:disabled {
     width: 100%;
   }
 }
+
 /* =====================================================
    RARITY CARD EFFECTS
    ===================================================== */
@@ -766,7 +769,6 @@ button:disabled {
   transform: translateY(-5px);
 }
 
-
 /* RARE */
 
 .game-card.rarity-rare {
@@ -778,7 +780,6 @@ button:disabled {
   box-shadow: 0 0 28px rgba(59, 130, 246, 0.45);
   transform: translateY(-5px);
 }
-
 
 /* EPIC */
 
@@ -792,7 +793,6 @@ button:disabled {
   transform: translateY(-5px);
 }
 
-
 /* LEGENDARY */
 
 .game-card.rarity-legendary {
@@ -804,7 +804,6 @@ button:disabled {
   box-shadow: 0 0 35px rgba(245, 197, 66, 0.55);
   transform: translateY(-5px);
 }
-
 
 /* MYTHIC */
 
@@ -820,7 +819,6 @@ button:disabled {
   transform: translateY(-5px);
 }
 
-
 /* RARITY BADGES */
 
 .rarity {
@@ -832,7 +830,6 @@ button:disabled {
   letter-spacing: 1px;
 }
 
-
 /* RARE BADGE */
 
 .rarity-rare {
@@ -840,7 +837,6 @@ button:disabled {
   background: rgba(59, 130, 246, 0.12);
   border: 1px solid rgba(59, 130, 246, 0.35);
 }
-
 
 /* EPIC BADGE */
 
@@ -850,7 +846,6 @@ button:disabled {
   border: 1px solid rgba(168, 85, 247, 0.35);
 }
 
-
 /* LEGENDARY BADGE */
 
 .rarity-legendary {
@@ -858,7 +853,6 @@ button:disabled {
   background: rgba(245, 197, 66, 0.12);
   border: 1px solid rgba(245, 197, 66, 0.4);
 }
-
 
 /* COMMON BADGE */
 
@@ -868,7 +862,6 @@ button:disabled {
   border: 1px solid rgba(150, 150, 150, 0.3);
 }
 
-
 /* MYTHIC BADGE */
 
 .rarity-mythic {
@@ -876,6 +869,7 @@ button:disabled {
   background: rgba(255, 107, 255, 0.12);
   border: 1px solid rgba(255, 107, 255, 0.4);
 }
+
 .collection-stat {
   background: #242431;
   border: 1px solid #30303d;
@@ -925,4 +919,3040 @@ button:disabled {
 
 .rarity-count.mythic {
   background: #672b50;
+}
+
+/* ================================
+   HEADER TITLE FIX
+   ================================ */
+
+header > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+}
+
+header > div:first-child h1 {
+  margin: 0;
+  padding: 0;
+  line-height: 1.05;
+}
+
+header > div:first-child p {
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+  position: static;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* =========================================
+   MYTHICFORGE PROFESSIONAL HEADER
+   ========================================= */
+
+header {
+  min-height: 88px;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Brand area */
+
+header > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* Main title */
+
+header > div:first-child h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 32px;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+/* Subtitle */
+
+header > div:first-child p {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  opacity: 0.7;
+  white-space: nowrap;
+  position: static;
+}
+
+/* Wallet button */
+
+header > button {
+  flex-shrink: 0;
+  min-width: 130px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+header > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+header > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* =========================================
+   MOBILE HEADER
+   ========================================= */
+
+@media (max-width: 650px) {
+  header {
+    min-height: 78px;
+    padding: 14px 18px;
+    gap: 12px;
+  }
+
+  header > div:first-child h1 {
+    font-size: 25px;
+  }
+
+  header > div:first-child p {
+    font-size: 11px;
+  }
+
+  header > button {
+    min-width: auto;
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+}
+
+/* =========================================
+   MYTHICFORGE HERO SECTION
+   ========================================= */
+
+.hero {
+  padding: 80px 30px 65px !important;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero h2 {
+  margin: 0 0 18px !important;
+  font-size: clamp(42px, 7vw, 72px) !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: -2px;
+}
+
+.hero > p:not(.network) {
+  margin: 0 auto 18px !important;
+  max-width: 650px;
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+.hero .network {
+  display: inline-block;
+  margin: 8px 0 0 !important;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 1px solid rgba(130, 100, 255, 0.35);
+  background: rgba(100, 80, 200, 0.12);
+}
+
+/* Subtle glow behind hero */
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(100, 70, 255, 0.08);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero h2,
+.hero p {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================
+   MOBILE HERO
+   ========================================= */
+
+@media (max-width: 650px) {
+  .hero {
+    padding: 55px 20px 45px !important;
+  }
+
+  .hero h2 {
+    font-size: 42px !important;
+    letter-spacing: -1px;
+  }
+
+  .hero > p:not(.network) {
+    font-size: 15px;
+  }
+}
+
+/* =========================================
+   MYTHICFORGE NFT CARDS
+   ========================================= */
+
+.game-card {
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: rgba(20, 20, 30, 0.92) !important;
+  box-shadow:
+    0 10px 35px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.38),
+    0 0 25px rgba(120, 90, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+/* Card artwork */
+
+.game-card > div:first-child {
+  height: 290px !important;
+  position: relative;
+  background: #111118;
+  overflow: hidden;
+}
+
+.game-card > div:first-child img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  /*
+   * Keep the upper part of the artwork visible
+   * so character faces and heads are less likely
+   * to be cropped.
+   */
+  object-position: center 20%;
+
+  display: block;
+
+  transition:
+    transform 0.4s ease,
+    filter 0.3s ease;
+}
+
+.game-card:hover > div:first-child img {
+  transform: scale(1.03);
+}
+
+/* =========================================
+   TOKEN NUMBER
+   ========================================= */
+
+.token-id {
+  position: absolute !important;
+
+  /*
+   * Move token number to the top-right so
+   * it doesn't sit over the character's face.
+   */
+  top: 10px;
+  right: 10px;
+  left: auto;
+
+  z-index: 10;
+
+  min-width: 34px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 9px;
+
+  border-radius: 8px;
+
+  background: rgba(8, 8, 14, 0.88);
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  backdrop-filter: blur(8px);
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  line-height: 1;
+
+  letter-spacing: 0.5px;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.35);
+
+  pointer-events: none;
+}
+
+/* Card content */
+
+.game-card > div:last-child {
+  background: linear-gradient(
+    180deg,
+    rgba(25, 25, 36, 0.98),
+    rgba(17, 17, 25, 0.98)
+  );
+}
+
+.game-card h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.game-card p {
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+}
+
+/* Rarity badge */
+
+.rarity {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+}
+
+/* Stats */
+
+.stats {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px !important;
+}
+
+.stats span {
+  padding: 9px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Price */
+
+.game-card strong {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+/* Marketplace buttons */
+
+.buy-button,
+.sell-button {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.buy-button:hover,
+.sell-button:hover {
+  transform: translateY(-2px);
+}
+
+.buy-button:disabled,
+.sell-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Owned cards */
+
+.owned-card {
+  position: relative;
+}
+
+.owned-card::after {
+  content: "OWNED";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+/* =========================================
+   MOBILE CARD LAYOUT
+   ========================================= */
+
+@media (max-width: 650px) {
+  .game-card {
+    width: 100% !important;
+    max-width: 340px;
+  }
+
+  .game-card > div:first-child {
+    height: 270px !important;
+  }
+
+  .game-card > div:first-child img {
+    object-position: center 18%;
+  }
+
+  .token-id {
+    top: 8px;
+    right: 8px;
+
+    min-width: 30px;
+    height: 25px;
+
+    padding: 0 7px;
+
+    font-size: 10px;
+  }
+
+  .game-card h2 {
+    font-size: 19px;
+  }
+}
+/* =========================================
+   MYTHICFORGE MARKETPLACE CONTROLS
+   ========================================= */
+
+.filter-bar {
+  max-width: 1100px;
+  margin: 0 auto 35px;
+  padding: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  background: rgba(18, 18, 27, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.2);
+
+  backdrop-filter: blur(12px);
+}
+
+/* Search box */
+
+.search-input {
+  width: 320px !important;
+  height: 46px;
+
+  padding: 0 16px 0 18px;
+
+  border-radius: 11px !important;
+  border: 1px solid #30303d !important;
+
+  background: #111119 !important;
+  color: white !important;
+
+  font-size: 14px;
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #777789;
+}
+
+.search-input:focus {
+  border-color: #6c5ce7 !important;
+
+  box-shadow:
+    0 0 0 3px rgba(108, 92, 231, 0.12);
+}
+
+/* Dropdowns */
+
+.filter-bar select {
+  height: 46px;
+
+  min-width: 170px;
+
+  padding: 0 38px 0 15px;
+
+  border-radius: 11px !important;
+  border: 1px solid #30303d !important;
+
+  background-color: #111119 !important;
+  color: white !important;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  outline: none;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.filter-bar select:hover {
+  border-color: #555568 !important;
+}
+
+.filter-bar select:focus {
+  border-color: #6c5ce7 !important;
+
+  box-shadow:
+    0 0 0 3px rgba(108, 92, 231, 0.12);
+}
+
+.filter-bar select option {
+  background: #171720;
+  color: white;
+}
+
+/* Reset button */
+
+.filter-bar button {
+  height: 46px;
+
+  padding: 0 18px;
+
+  border-radius: 11px;
+
+  background: #242431;
+  color: #d8d8e5;
+
+  border: 1px solid #30303d;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.filter-bar button:hover {
+  background: #6c5ce7;
+  border-color: #6c5ce7;
+  color: white;
+
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   MARKETPLACE SECTION SPACING
+   ========================================= */
+
+.card-section {
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.card-section .section-title {
+  margin-bottom: 25px;
+}
+
+.card-section .section-title h2 {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.card-section .section-title p {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* =========================================
+   MOBILE FILTERS
+   ========================================= */
+
+@media (max-width: 700px) {
+  .filter-bar {
+    width: calc(100% - 20px);
+    padding: 12px;
+
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input,
+  .filter-bar select,
+  .filter-bar button {
+    width: 100% !important;
+  }
+
+  .card-section {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+/* =========================================
+   MYTHICFORGE CARD DETAIL EXPERIENCE
+   ========================================= */
+
+.card-modal {
+  width: min(950px, 94vw) !important;
+  max-height: 90vh;
+  background:
+    linear-gradient(
+      145deg,
+      #1b1b27,
+      #111119
+    ) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 22px !important;
+
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.7),
+    0 0 50px rgba(108, 92, 231, 0.12);
+
+  animation: mythicModalIn 0.25s ease-out;
+}
+
+@keyframes mythicModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal artwork */
+
+.modal-image-container {
+  min-height: 580px !important;
+  background: #0d0d14 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-image-container img {
+  width: 100%;
+  height: 100%;
+  min-height: 580px !important;
+
+  object-fit: cover;
+
+  /*
+   * Keep the character's face/head visible.
+   */
+  object-position: center 20%;
+
+  display: block;
+
+  transition: transform 0.4s ease;
+}
+
+.card-modal:hover
+.modal-image-container img {
+  transform: scale(1.015);
+}
+
+/* Dark gradient over bottom of artwork */
+
+.modal-image-container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 120px;
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(10, 10, 16, 0.65)
+    );
+
+  pointer-events: none;
+}
+
+/* Modal content */
+
+.modal-content {
+  padding: 40px !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25, 25, 36, 0.98),
+      rgba(15, 15, 22, 0.98)
+    );
+}
+
+/* Title */
+
+.modal-content h2 {
+  font-size: 36px !important;
+  line-height: 1.1;
+  margin-bottom: 7px !important;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+/* Token number */
+
+.modal-content > div:first-child span {
+  color: #8f8fa3;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Description */
+
+.modal-content > p {
+  color: #bdbdcc;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* Stats */
+
+.modal-stats {
+  gap: 12px !important;
+}
+
+.modal-stat {
+  padding: 20px !important;
+  background:
+    rgba(255, 255, 255, 0.035) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08) !important;
+
+  border-radius: 13px !important;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.modal-stat:hover {
+  transform: translateY(-2px);
+  border-color: rgba(108, 92, 231, 0.45) !important;
+}
+
+.modal-stat strong {
+  font-size: 30px !important;
+  font-weight: 900;
+}
+
+.modal-stat span {
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+/* Owner/status information */
+
+.modal-owner,
+.modal-status,
+.modal-price {
+  padding: 15px 0 !important;
+}
+
+.modal-owner code {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+/* Price */
+
+.modal-price strong {
+  font-size: 30px !important;
+  font-weight: 900;
+}
+
+/* Buttons */
+
+.modal-actions {
+  gap: 10px !important;
+}
+
+.modal-buy-button,
+.modal-sell-button,
+.modal-cancel-button {
+  min-height: 52px;
+
+  border-radius: 11px !important;
+
+  font-weight: 800 !important;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.modal-buy-button:hover,
+.modal-sell-button:hover,
+.modal-cancel-button:hover {
+  transform: translateY(-2px);
+  opacity: 1 !important;
+}
+
+.modal-buy-button:hover,
+.modal-sell-button:hover {
+  box-shadow:
+    0 8px 25px rgba(108, 92, 231, 0.3);
+}
+
+/* Close button */
+
+.modal-close {
+  width: 40px !important;
+  height: 40px !important;
+
+  top: 12px !important;
+  right: 12px !important;
+
+  background:
+    rgba(5, 5, 10, 0.8) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.15);
+
+  backdrop-filter: blur(8px);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.modal-close:hover {
+  transform: rotate(90deg);
+  background: #6c5ce7 !important;
+}
+
+/* =========================================
+   MOBILE MODAL
+   ========================================= */
+
+@media (max-width: 800px) {
+  .card-modal {
+    width: 94vw !important;
+    max-height: 94vh;
+  }
+
+  .modal-image-container {
+    min-height: 360px !important;
+    height: 360px !important;
+  }
+
+  .modal-image-container img {
+    min-height: 360px !important;
+    height: 360px !important;
+    object-position: center 18%;
+  }
+
+  .modal-content {
+    padding: 25px !important;
+  }
+
+  .modal-content h2 {
+    font-size: 29px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .card-modal {
+    width: 96vw !important;
+    border-radius: 16px !important;
+  }
+
+  .modal-image-container {
+    min-height: 300px !important;
+    height: 300px !important;
+  }
+
+  .modal-image-container img {
+    min-height: 300px !important;
+    height: 300px !important;
+  }
+
+  .modal-content {
+    padding: 20px !important;
+  }
+
+  .modal-content h2 {
+    font-size: 25px !important;
+  }
+}
+/* =========================================
+   MYTHICFORGE COLLECTION DASHBOARD
+   ========================================= */
+
+.collection-stat {
+  position: relative;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(35, 35, 49, 0.95),
+      rgba(23, 23, 32, 0.95)
+    ) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 15px !important;
+
+  padding: 20px 12px !important;
+
+  min-height: 125px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.collection-stat:hover {
+  transform: translateY(-4px);
+
+  border-color: rgba(108, 92, 231, 0.5) !important;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
+    0 0 20px rgba(108, 92, 231, 0.1);
+}
+
+.collection-stat span {
+  display: block;
+  font-size: 26px !important;
+  margin-bottom: 9px !important;
+}
+
+.collection-stat strong {
+  display: block;
+  font-size: 28px !important;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 7px !important;
+}
+
+.collection-stat small {
+  display: block;
+  color: #9292a5;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =========================================
+   RARITY BREAKDOWN
+   ========================================= */
+
+.rarity-count {
+  padding: 9px 15px !important;
+  border-radius: 999px !important;
+
+  font-size: 12px !important;
+  font-weight: 800 !important;
+
+  border: 1px solid transparent;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rarity-count:hover {
+  transform: translateY(-2px);
+}
+
+/* Common */
+
+.rarity-count.common {
+  background: rgba(150, 150, 150, 0.14) !important;
+  border-color: rgba(180, 180, 180, 0.25);
+  color: #d0d0d0;
+}
+
+/* Rare */
+
+.rarity-count.rare {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+/* Epic */
+
+.rarity-count.epic {
+  background: rgba(168, 85, 247, 0.14) !important;
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+}
+
+/* Legendary */
+
+.rarity-count.legendary {
+  background: rgba(245, 197, 66, 0.14) !important;
+  border-color: rgba(245, 197, 66, 0.35);
+  color: #f5c542;
+}
+
+/* Mythic */
+
+.rarity-count.mythic {
+  background: rgba(255, 107, 255, 0.14) !important;
+  border-color: rgba(255, 107, 255, 0.35);
+  color: #ff8cff;
+}
+
+/* =========================================
+   COLLECTION CONTAINER
+   ========================================= */
+
+.collection-stat:first-child {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================
+   MOBILE COLLECTION DASHBOARD
+   ========================================= */
+
+@media (max-width: 600px) {
+  .collection-stat {
+    min-height: 110px;
+    padding: 16px 8px !important;
+  }
+
+  .collection-stat span {
+    font-size: 22px !important;
+  }
+
+  .collection-stat strong {
+    font-size: 24px !important;
+  }
+
+  .collection-stat small {
+    font-size: 9px;
+  }
+
+  .rarity-count {
+    padding: 8px 11px !important;
+    font-size: 11px !important;
+  }
+}
+/* =========================================
+   MYTHICFORGE SELL EXPERIENCE
+   ========================================= */
+
+.sell-button {
+  background: #6c5ce7 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 9px !important;
+  font-weight: 800 !important;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.sell-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(108, 92, 231, 0.3);
+  opacity: 1 !important;
+}
+
+.sell-button:disabled {
+  opacity: 0.55 !important;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================
+   TRANSFER BUTTON
+   ========================================= */
+
+.transfer-button {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease !important;
+}
+
+.transfer-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(59, 130, 246, 0.25);
+}
+
+.transfer-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* =========================================
+   BUY BUTTON
+   ========================================= */
+
+.buy-button {
+  background: #6c5ce7 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 9px !important;
+  font-weight: 800 !important;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.buy-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(108, 92, 231, 0.35);
+  opacity: 1 !important;
+}
+
+.buy-button:disabled {
+  opacity: 0.55 !important;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================
+   MODAL ACTION BUTTONS
+   ========================================= */
+
+.modal-buy-button,
+.modal-sell-button,
+.modal-cancel-button,
+.modal-transfer-button {
+  border: none !important;
+  border-radius: 11px !important;
+
+  min-height: 52px;
+
+  font-size: 15px !important;
+  font-weight: 800 !important;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.modal-buy-button:hover,
+.modal-sell-button:hover,
+.modal-transfer-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 25px rgba(108, 92, 231, 0.3);
+}
+
+.modal-cancel-button:hover {
+  transform: translateY(-2px);
+}
+
+.modal-buy-button:disabled,
+.modal-sell-button:disabled,
+.modal-cancel-button:disabled,
+.modal-transfer-button:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================
+   TRANSFER MODAL
+   ========================================= */
+
+.transfer-modal {
+  position: relative;
+
+  width: min(500px, 94vw);
+
+  padding: 35px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1b1b27,
+      #111119
+    );
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.65);
+
+  animation: transferModalIn 0.25s ease-out;
+}
+
+@keyframes transferModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.transfer-modal h2 {
+  margin: 0 0 12px;
+
+  font-size: 30px;
+
+  font-weight: 900;
+}
+
+.transfer-modal p {
+  color: #aaaabc;
+  line-height: 1.6;
+}
+
+.transfer-modal label {
+  display: block;
+
+  margin-top: 25px;
+  margin-bottom: 8px;
+
+  color: #cfcfe0;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.transfer-modal input {
+  width: 100%;
+
+  height: 50px;
+
+  padding: 0 15px;
+
+  border-radius: 10px;
+
+  border:
+    1px solid #30303d;
+
+  background: #0e0e16;
+
+  color: white;
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.transfer-modal input:focus {
+  border-color: #6c5ce7;
+
+  box-shadow:
+    0 0 0 3px
+      rgba(108, 92, 231, 0.12);
+}
+
+.transfer-modal input::placeholder {
+  color: #666678;
+}
+
+.transfer-modal > div:last-child {
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.transfer-modal > div:last-child button {
+  flex: 1;
+}
+
+.transfer-modal > div:last-child button:first-child {
+  background: #30303d;
+  color: white;
+}
+
+.transfer-modal > div:last-child button:first-child:hover {
+  background: #3b3b4b;
+}
+
+/* =========================================
+   MOBILE TRANSFER MODAL
+   ========================================= */
+
+@media (max-width: 500px) {
+  .transfer-modal {
+    width: 96vw;
+    padding: 25px 20px;
+    border-radius: 16px;
+  }
+
+  .transfer-modal h2 {
+    font-size: 25px;
+  }
+
+  .transfer-modal > div:last-child {
+    flex-direction: column;
+  }
+
+  .transfer-modal > div:last-child button {
+    width: 100%;
+  }
+}
+/* =========================================
+   MYTHICFORGE RECENT ACTIVITY
+   ========================================= */
+
+.activity-section {
+  max-width: 1000px;
+  margin: 70px auto !important;
+  padding: 30px 20px;
+}
+
+.activity-section .section-title {
+  margin-bottom: 25px;
+}
+
+/* Activity list */
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Activity card */
+
+.activity-item {
+  position: relative;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 18px 20px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(25, 25, 36, 0.98),
+      rgba(18, 18, 27, 0.98)
+    ) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08) !important;
+
+  border-radius: 14px !important;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.activity-item:hover {
+  transform: translateY(-3px);
+
+  border-color:
+    rgba(108, 92, 231, 0.45) !important;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Main activity information */
+
+.activity-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Activity type badge */
+
+.activity-type {
+  min-width: 90px;
+
+  padding: 8px 12px;
+
+  border-radius: 9px;
+
+  text-align: center;
+
+  background: #242431 !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  font-size: 11px !important;
+  font-weight: 900 !important;
+
+  letter-spacing: 0.8px;
+
+  flex-shrink: 0;
+}
+
+/* Activity title */
+
+.activity-item h3 {
+  margin: 0 0 6px !important;
+
+  font-size: 16px;
+
+  font-weight: 800;
+}
+
+/* Activity details */
+
+.activity-item p {
+  margin: 3px 0 !important;
+
+  color: #9292a5 !important;
+
+  font-size: 13px !important;
+
+  line-height: 1.4;
+}
+
+/* Transaction button */
+
+.transaction-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 95px;
+
+  padding: 9px 13px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(108, 92, 231, 0.12);
+
+  border:
+    1px solid rgba(108, 92, 231, 0.3);
+
+  color: #a99cff !important;
+
+  text-decoration: none;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.transaction-link:hover {
+  background: #6c5ce7;
+
+  border-color: #6c5ce7;
+
+  color: white !important;
+
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   ACTIVITY TYPE COLORS
+   ========================================= */
+
+/* Listed */
+
+.activity-item:has(
+  .activity-type
+) {
+  --activity-glow:
+    rgba(108, 92, 231, 0.2);
+}
+
+/* =========================================
+   EMPTY ACTIVITY STATE
+   ========================================= */
+
+.activity-section
+  .empty-state,
+.activity-section
+  .status {
+  max-width: 700px;
+
+  margin: 0 auto;
+
+  padding: 35px 25px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23, 23, 32, 0.95),
+      rgba(16, 16, 24, 0.95)
+    );
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 16px;
+
+  color: #9292a5;
+}
+
+/* =========================================
+   MOBILE ACTIVITY
+   ========================================= */
+
+@media (max-width: 650px) {
+  .activity-section {
+    padding: 20px 15px;
+    margin: 50px auto !important;
+  }
+
+  .activity-item {
+    flex-direction: column;
+    align-items: stretch;
+
+    padding: 16px !important;
+  }
+
+  .activity-main {
+    align-items: flex-start;
+  }
+
+  .activity-type {
+    min-width: 78px;
+    font-size: 10px !important;
+  }
+
+  .transaction-link {
+    width: 100%;
+  }
+}
+/* =========================================
+   MYTHICFORGE WEB3 / ABOUT SECTION
+   ========================================= */
+
+.web3-section {
+  max-width: 1100px;
+  margin: 80px auto !important;
+  padding: 0 30px;
+}
+
+.web3-section .section-title {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.web3-section .section-title h2 {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.web3-section .section-title p {
+  max-width: 650px;
+  margin: 10px auto 0;
+  color: #9292a5;
+  line-height: 1.6;
+}
+
+/* =========================================
+   WEB3 FEATURE GRID
+   ========================================= */
+
+.web3-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+/* Individual feature */
+
+.web3-card {
+  position: relative;
+
+  padding: 25px 20px;
+
+  min-height: 170px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(29, 29, 41, 0.96),
+      rgba(18, 18, 27, 0.96)
+    );
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.web3-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 120px;
+  height: 120px;
+
+  top: -60px;
+  right: -60px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(108, 92, 231, 0.08);
+
+  filter: blur(25px);
+
+  pointer-events: none;
+}
+
+.web3-card:hover {
+  transform: translateY(-5px);
+
+  border-color:
+    rgba(108, 92, 231, 0.4);
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.28),
+    0 0 25px rgba(108, 92, 231, 0.08);
+}
+
+/* Icon */
+
+.web3-card-icon {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 17px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(108, 92, 231, 0.13);
+
+  border:
+    1px solid rgba(108, 92, 231, 0.25);
+
+  font-size: 21px;
+}
+
+/* Heading */
+
+.web3-card h3 {
+  margin: 0 0 8px;
+
+  font-size: 16px;
+
+  font-weight: 850;
+}
+
+/* Description */
+
+.web3-card p {
+  margin: 0;
+
+  color: #8f8fa3;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+/* =========================================
+   CONTRACT INFORMATION
+   ========================================= */
+
+.contract-panel {
+  margin-top: 18px;
+
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(26, 26, 38, 0.98),
+      rgba(17, 17, 25, 0.98)
+    );
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 16px;
+}
+
+.contract-panel h3 {
+  margin: 0 0 18px;
+
+  font-size: 17px;
+
+  font-weight: 850;
+}
+
+.contract-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 14px 0;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.06);
+}
+
+.contract-row:last-child {
+  border-bottom: none;
+
+  padding-bottom: 0;
+}
+
+.contract-label {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  flex-shrink: 0;
+}
+
+.contract-label strong {
+  font-size: 13px;
+}
+
+.contract-label span {
+  color: #777789;
+
+  font-size: 11px;
+}
+
+/* Address */
+
+.contract-address {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+}
+
+.contract-address code {
+  max-width: 500px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  padding: 9px 12px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.06);
+
+  color: #b7b0ff;
+
+  font-family: monospace;
+
+  font-size: 11px;
+}
+
+/* Explorer button */
+
+.contract-link {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 9px 13px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(108, 92, 231, 0.1);
+
+  border:
+    1px solid rgba(108, 92, 231, 0.28);
+
+  color: #a99cff !important;
+
+  text-decoration: none;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.contract-link:hover {
+  background: #6c5ce7;
+
+  color: white !important;
+
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   NETWORK BADGE
+   ========================================= */
+
+.web3-network-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin: 0 auto 25px;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(108, 92, 231, 0.1);
+
+  border:
+    1px solid rgba(108, 92, 231, 0.25);
+
+  color: #b7b0ff;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.4px;
+}
+
+.web3-network-badge::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #62d68b;
+
+  box-shadow:
+    0 0 10px rgba(98, 214, 139, 0.6);
+}
+
+/* =========================================
+   IPFS BADGE
+   ========================================= */
+
+.ipfs-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 5px 9px;
+
+  border-radius: 7px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  color: #bdbdcc;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.4px;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 850px) {
+  .web3-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .contract-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+  .contract-address {
+    width: 100%;
+  }
+
+  .contract-address code {
+    max-width: none;
+
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .web3-section {
+    padding: 0 15px;
+
+    margin: 60px auto !important;
+  }
+
+  .web3-section .section-title h2 {
+    font-size: 28px;
+  }
+
+  .web3-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .web3-card {
+    min-height: auto;
+  }
+
+  .contract-panel {
+    padding: 18px;
+  }
+
+  .contract-address {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .contract-address code {
+    width: 100%;
+
+    box-sizing: border-box;
+  }
+
+  .contract-link {
+    width: 100%;
+  }
+}
+/* =========================================
+   MYTHICFORGE PREMIUM CARD GALLERY
+   ========================================= */
+
+.card-grid {
+  align-items: stretch !important;
+}
+
+/* Premium card surface */
+
+.game-card {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 20px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28, 28, 41, 0.98),
+      rgba(15, 15, 23, 0.98)
+    ) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10) !important;
+
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Glow behind card */
+
+.game-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 180px;
+  height: 180px;
+
+  top: -90px;
+  right: -70px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(108, 92, 231, 0.12);
+
+  filter: blur(45px);
+
+  pointer-events: none;
+
+  z-index: 0;
+}
+
+.game-card:hover {
+  transform: translateY(-9px);
+
+  border-color:
+    rgba(140, 125, 255, 0.38) !important;
+
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.42),
+    0 0 35px rgba(108, 92, 231, 0.12);
+}
+
+/* =========================================
+   CARD ART
+   ========================================= */
+
+.game-card > div:first-child {
+  height: 310px !important;
+
+  position: relative;
+
+  background: #0b0b12;
+
+  overflow: hidden;
+
+  z-index: 1;
+}
+
+.game-card > div:first-child::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 90px;
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(8, 8, 14, 0.75)
+    );
+
+  pointer-events: none;
+
+  z-index: 2;
+}
+
+.game-card > div:first-child img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  object-position: center 18%;
+
+  display: block;
+
+  transition:
+    transform 0.5s ease,
+    filter 0.4s ease;
+}
+
+.game-card:hover > div:first-child img {
+  transform: scale(1.045);
+
+  filter:
+    saturate(1.08)
+    contrast(1.03);
+}
+
+/* =========================================
+   TOKEN BADGE
+   ========================================= */
+
+.token-id {
+  top: 12px !important;
+  right: 12px !important;
+
+  min-width: 38px !important;
+  height: 30px !important;
+
+  padding: 0 10px !important;
+
+  border-radius: 9px !important;
+
+  background:
+    rgba(7, 7, 13, 0.86) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.20) !important;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 5px 18px rgba(0, 0, 0, 0.4);
+
+  font-size: 11px !important;
+
+  font-weight: 900 !important;
+
+  z-index: 10 !important;
+}
+
+/* =========================================
+   CARD INFORMATION
+   ========================================= */
+
+.game-card > div:last-child {
+  position: relative;
+
+  padding: 20px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25, 25, 36, 0.98),
+      rgba(15, 15, 23, 0.98)
+    ) !important;
+
+  z-index: 3;
+}
+
+.game-card h2 {
+  font-size: 21px !important;
+
+  line-height: 1.2 !important;
+
+  margin: 0 !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -0.3px;
+}
+
+.game-card p {
+  font-size: 13px !important;
+
+  line-height: 1.55 !important;
+
+  color:
+    rgba(255, 255, 255, 0.62) !important;
+}
+
+/* =========================================
+   RARITY PILL
+   ========================================= */
+
+.rarity {
+  padding: 6px 10px !important;
+
+  border-radius: 999px !important;
+
+  font-size: 10px !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: 0.7px;
+
+  text-transform: uppercase;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* =========================================
+   STATS
+   ========================================= */
+
+.stats {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 8px !important;
+
+  margin-top: 17px !important;
+}
+
+.stats span {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 38px;
+
+  padding: 7px !important;
+
+  border-radius: 9px !important;
+
+  background:
+    rgba(255, 255, 255, 0.035) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.065);
+
+  color: #c8c8d6;
+
+  font-size: 11px !important;
+
+  font-weight: 800;
+}
+
+/* =========================================
+   PRICE AREA
+   ========================================= */
+
+.game-card strong {
+  font-size: 19px !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -0.2px;
+}
+
+/* =========================================
+   BUTTON AREA
+   ========================================= */
+
+.buy-button,
+.sell-button {
+  min-height: 42px;
+
+  border-radius: 10px !important;
+
+  font-size: 13px !important;
+
+  font-weight: 850 !important;
+}
+
+/* =========================================
+   OWNED CARD
+   ========================================= */
+
+.owned-card::after {
+  content: "OWNED";
+
+  top: 12px !important;
+  right: 12px !important;
+
+  padding: 6px 9px !important;
+
+  border-radius: 8px !important;
+
+  background:
+    rgba(5, 5, 10, 0.78) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(9px);
+
+  color: white;
+
+  font-size: 9px !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: 0.9px;
+}
+
+/* =========================================
+   CARD SECTION SPACING
+   ========================================= */
+
+.card-section {
+  padding-top: 10px;
+
+  padding-bottom: 30px;
+}
+
+.card-section .section-title {
+  margin-bottom: 30px !important;
+}
+
+.card-section .section-title h2 {
+  font-size: 35px !important;
+
+  font-weight: 900 !important;
+
+  letter-spacing: -0.8px;
+}
+
+.card-section .section-title p {
+  margin-top: 7px;
+
+  color: #888899;
+
+  font-size: 13px;
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 650px) {
+  .game-card > div:first-child {
+    height: 285px !important;
+  }
+
+  .game-card > div:last-child {
+    padding: 18px !important;
+  }
+
+  .game-card h2 {
+    font-size: 19px !important;
+  }
+
+  .card-section .section-title h2 {
+    font-size: 29px !important;
+  }
+}
+/* =========================================
+   MYTHICFORGE WALLET EXPERIENCE
+   ========================================= */
+
+/* Wallet area */
+
+.wallet-area {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+/* Connected wallet */
+
+.wallet-connected {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 8px 12px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.045);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+
+  backdrop-filter: blur(10px);
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.wallet-connected:hover {
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  border-color:
+    rgba(108, 92, 231, 0.35);
+
+  transform: translateY(-1px);
+}
+
+/* Wallet status dot */
+
+.wallet-status-dot {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #62d68b;
+
+  box-shadow:
+    0 0 10px rgba(98, 214, 139, 0.65);
+}
+
+/* Wallet address */
+
+.wallet-address {
+  color: #d9d9e5;
+
+  font-family: monospace;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.2px;
+}
+
+/* Network indicator */
+
+.wallet-network {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 6px 9px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(108, 92, 231, 0.10);
+
+  border:
+    1px solid rgba(108, 92, 231, 0.20);
+
+  color: #aaa0ff;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================
+   CONNECT WALLET BUTTON
+   ========================================= */
+
+.connect-wallet {
+  position: relative;
+
+  min-width: 140px;
+
+  min-height: 44px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7566f0,
+      #5b4bd6
+    );
+
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: 850;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 24px rgba(108, 92, 231, 0.20);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.connect-wallet:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 12px 30px rgba(108, 92, 231, 0.35);
+}
+
+.connect-wallet:active {
+  transform: translateY(0);
+}
+
+.connect-wallet:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+/* =========================================
+   DISCONNECT BUTTON
+   ========================================= */
+
+.disconnect-wallet {
+  min-height: 34px;
+
+  padding: 0 10px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.04);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  color: #9999aa;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.disconnect-wallet:hover {
+  background:
+    rgba(239, 68, 68, 0.10);
+
+  border-color:
+    rgba(239, 68, 68, 0.30);
+
+  color: #ff8585;
+}
+
+/* =========================================
+   WALLET LOADING
+   ========================================= */
+
+.wallet-loading {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+}
+
+.wallet-loading::before {
+  content: "";
+
+  width: 13px;
+  height: 13px;
+
+  border:
+    2px solid rgba(255, 255, 255, 0.25);
+
+  border-top-color: white;
+
+  border-radius: 50%;
+
+  animation:
+    walletSpin 0.7s linear infinite;
+}
+
+@keyframes walletSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================
+   HEADER WALLET RESPONSIVE
+   ========================================= */
+
+@media (max-width: 750px) {
+  .wallet-connected {
+    padding: 7px 9px;
+  }
+
+  .wallet-address {
+    max-width: 95px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+  }
+
+  .wallet-network {
+    display: none;
+  }
+
+  .connect-wallet {
+    min-width: 120px;
+
+    padding: 0 13px;
+
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .wallet-connected {
+    gap: 7px;
+
+    padding: 6px 8px;
+  }
+
+  .wallet-address {
+    max-width: 70px;
+
+    font-size: 10px;
+  }
+
+  .wallet-status-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .disconnect-wallet {
+    padding: 0 7px;
+
+    font-size: 9px;
+  }
+
+  .connect-wallet {
+    min-width: auto;
+
+    min-height: 40px;
+
+    padding: 0 11px;
+
+    font-size: 11px;
+  }
+}
+/* =========================================
+   MYTHICFORGE FINAL FOOTER
+   ========================================= */
+
+.site-footer {
+  position: relative;
+
+  margin-top: 90px;
+
+  padding: 55px 30px 25px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 12, 18, 0),
+      rgba(10, 10, 16, 0.96)
+    );
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  overflow: hidden;
+}
+
+.site-footer::before {
+  content: "";
+
+  position: absolute;
+
+  width: 500px;
+  height: 200px;
+
+  left: 50%;
+  top: -120px;
+
+  transform: translateX(-50%);
+
+  border-radius: 50%;
+
+  background:
+    rgba(108, 92, 231, 0.10);
+
+  filter: blur(70px);
+
+  pointer-events: none;
+}
+
+/* Footer content */
+
+.footer-inner {
+  position: relative;
+
+  z-index: 1;
+
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    1.5fr 1fr 1fr;
+
+  gap: 45px;
+}
+
+/* Brand */
+
+.footer-brand h2 {
+  margin: 0 0 10px;
+
+  font-size: 24px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.5px;
+}
+
+.footer-brand p {
+  max-width: 350px;
+
+  margin: 0;
+
+  color: #858596;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+/* Footer headings */
+
+.footer-column h3 {
+  margin: 0 0 15px;
+
+  font-size: 13px;
+
+  font-weight: 850;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.8px;
+
+  color: #d8d8e5;
+}
+
+/* Footer links */
+
+.footer-links {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+.footer-links a {
+  color: #858596 !important;
+
+  text-decoration: none;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #aaa0ff !important;
+
+  transform: translateX(3px);
+}
+
+/* =========================================
+   NETWORK STATUS
+   ========================================= */
+
+.footer-network {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 17px;
+
+  padding: 8px 12px;
+
+  border-radius: 9px;
+
+  background:
+    rgba(98, 214, 139, 0.07);
+
+  border:
+    1px solid rgba(98, 214, 139, 0.18);
+
+  color: #82d99f;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+.footer-network::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #62d68b;
+
+  box-shadow:
+    0 0 9px rgba(98, 214, 139, 0.65);
+}
+
+/* =========================================
+   FOOTER BOTTOM
+   ========================================= */
+
+.footer-bottom {
+  position: relative;
+
+  z-index: 1;
+
+  max-width: 1100px;
+
+  margin: 45px auto 0;
+
+  padding-top: 20px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.06);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.footer-bottom p {
+  margin: 0;
+
+  color: #626274;
+
+  font-size: 10px;
+}
+
+.footer-tech {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #686879;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+.footer-tech span {
+  padding: 5px 8px;
+
+  border-radius: 6px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* =========================================
+   RESPONSIVE FOOTER
+   ========================================= */
+
+@media (max-width: 750px) {
+  .site-footer {
+    padding:
+      45px 20px 20px;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+
+    gap: 30px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-bottom {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .site-footer {
+    margin-top: 60px;
+
+    padding:
+      40px 16px 18px;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr;
+
+    gap: 25px;
+  }
+
+  .footer-brand {
+    grid-column: auto;
+  }
+
+  .footer-bottom {
+    margin-top: 30px;
+  }
+
+  .footer-tech {
+    flex-wrap: wrap;
+  }
 }
