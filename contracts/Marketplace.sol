@@ -34,6 +34,11 @@ contract Marketplace is ReentrancyGuard {
     );
 
     constructor(address gameCardAddress) {
+        require(
+            gameCardAddress != address(0),
+            "Invalid game card address"
+        );
+
         gameCard = IERC721(gameCardAddress);
     }
 
@@ -42,7 +47,10 @@ contract Marketplace is ReentrancyGuard {
         uint256 price
     ) external {
 
-        require(price > 0, "Price must be greater than zero");
+        require(
+            price > 0,
+            "Price must be greater than zero"
+        );
 
         require(
             gameCard.ownerOf(tokenId) == msg.sender,
@@ -76,6 +84,11 @@ contract Marketplace is ReentrancyGuard {
         require(
             listing.seller != address(0),
             "Card is not listed"
+        );
+
+        require(
+            msg.sender != listing.seller,
+            "Seller cannot buy own card"
         );
 
         require(
