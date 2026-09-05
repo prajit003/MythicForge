@@ -1,0 +1,31 @@
+{
+  "name": "Emerald Guardian",
+  "description": "An ancient guardian of the emerald realms, protected by enchanted roots and powerful crystals that channel the magic of nature.",
+  "image": "ipfs://bafybeib6szx2jv7tx542qnlvovhf5763h7rwnwlfcbe5a7wvsdryhjuiji",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Nature"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 84
+    },
+    {
+      "trait_type": "Defense",
+      "value": 97
+    },
+    {
+      "trait_type": "Speed",
+      "value": 58
+    },
+    {
+      "trait_type": "Magic",
+      "value": 90
+    }
+  ]
+}

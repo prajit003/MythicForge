@@ -1,0 +1,31 @@
+{
+  "name": "Thunder Beast",
+  "description": "A fearsome beast charged with the power of the storm, striking its enemies with devastating lightning and unstoppable force.",
+  "image": "ipfs://bafybeieqizupo4bzh63pjqfwj3bimwiwqdsfpa64h7qyusxt6k3tbj5koe",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Lightning"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 92
+    },
+    {
+      "trait_type": "Defense",
+      "value": 78
+    },
+    {
+      "trait_type": "Speed",
+      "value": 89
+    },
+    {
+      "trait_type": "Magic",
+      "value": 86
+    }
+  ]
+}

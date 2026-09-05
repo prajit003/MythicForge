@@ -1,0 +1,31 @@
+{
+  "name": "Blood Moon Samurai",
+  "description": "A deadly warrior who draws power from the crimson moon, striking with unmatched speed and a blade infused with dark energy.",
+  "image": "ipfs://bafybeiex4zb6h46ot24burtagm46imuxvp2ymij6ta6thckitq2o75bl5e",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Shadow"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 95
+    },
+    {
+      "trait_type": "Defense",
+      "value": 82
+    },
+    {
+      "trait_type": "Speed",
+      "value": 94
+    },
+    {
+      "trait_type": "Magic",
+      "value": 70
+    }
+  ]
+}

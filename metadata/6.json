@@ -1,0 +1,31 @@
+{
+  "name": "Inferno Phoenix",
+  "description": "A legendary phoenix born from eternal flames, rising from the volcanic depths with unstoppable power.",
+  "image": "ipfs://bafybeienflcflx7rzrxzh5q47dhnw4a7lpoj5d7wbhyadoehkjxfwzh6z",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Element",
+      "value": "Fire"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 94
+    },
+    {
+      "trait_type": "Defense",
+      "value": 72
+    },
+    {
+      "trait_type": "Speed",
+      "value": 91
+    },
+    {
+      "trait_type": "Magic",
+      "value": 96
+    }
+  ]
+}
