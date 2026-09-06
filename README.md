@@ -1,28 +1,32 @@
 # MythicForge
 
-MythicForge is a decentralized NFT marketplace for unique digital game cards built on the Ethereum Sepolia Testnet.
+## Decentralized Game Card NFT Marketplace
 
-The project allows users to mint unique game cards, store their artwork and metadata on IPFS, list cards for sale, purchase cards from other users, and view their NFT collection through a modern web interface.
+MythicForge is a decentralized marketplace for collecting, trading, and owning unique blockchain-based game cards.
 
-## Project Overview
+Each game card is represented as an ERC-721 NFT with a unique token ID. Card artwork and metadata are stored on IPFS, while ownership, card information, listings, purchases, and transfers are handled through Ethereum smart contracts.
 
-MythicForge combines blockchain technology, NFTs, IPFS, and Web3 wallet integration to create a decentralized game-card marketplace.
+The project is deployed on the Ethereum Sepolia Testnet.
 
-Each game card is represented by a unique ERC-721 NFT with its own token ID. The NFT artwork and rich metadata are stored on IPFS, while important card information such as name, description, rarity, attack, and defense is recorded through the GameCard smart contract.
-
-The marketplace smart contract provides decentralized peer-to-peer trading using Sepolia ETH.
-
-The goal is to provide transparent digital ownership and peer-to-peer trading of unique game cards.
+---
 
 ## Live Demo
 
-[MythicForge Live Demo](https://mythic-forge1.vercel.app/)
+Live Application:
+
+https://mythic-forge1.vercel.app/
+
+GitHub Repository:
+
+https://github.com/prajit003/MythicForge
+
+---
 
 ## Features
 
 ### NFT Game Cards
 
-- Mint unique ERC-721 game cards
+- Mint unique game cards as ERC-721 NFTs
 - Every card receives a unique token ID
 - Each card contains:
   - Name
@@ -30,242 +34,219 @@ The goal is to provide transparent digital ownership and peer-to-peer trading of
   - Rarity
   - Attack
   - Defense
-  - Element
-  - Speed
-  - Magic
-  - Artwork
-- Ten unique game cards are currently included in the project
-
-### IPFS Storage
-
-- NFT artwork is stored on IPFS
-- NFT metadata is stored on IPFS
-- Metadata is connected to NFTs through their token URI
-- Decentralized storage removes dependence on a centralized image server
+  - Additional attributes
+- Artwork and metadata are stored on IPFS
 
 ### Decentralized Marketplace
 
-- List owned NFTs for sale
-- Set a price in Sepolia ETH
-- Purchase NFTs from other users
+Users can:
+
+- List cards for sale
+- Set prices in ETH
+- Purchase listed cards
 - Cancel active listings
-- NFT ownership is transferred through the blockchain
-- Marketplace listings are stored on-chain
+- Transfer NFT ownership
+- View cards available in the marketplace
 
-### Wallet Integration
+### Web3 Wallet
 
-- MetaMask wallet connection
-- Ethereum Sepolia Testnet support
-- Wallet-specific NFT collection
-- Blockchain transactions are confirmed through MetaMask
+- Connect MetaMask
+- Connect to Ethereum Sepolia
+- View connected wallet
+- View NFTs owned by the connected wallet
+- Perform blockchain transactions directly from the frontend
 
-### Marketplace Gallery
+### Marketplace Discovery
 
-- Browse available game cards
-- View card rarity
-- View attack and defense statistics
-- View card prices
-- Open detailed NFT information
-- Purchase listed NFTs
+- NFT card gallery
+- Search cards by name
+- Filter by rarity
+- Sort cards
+- View detailed card information
+- Display token IDs
+- Display listing prices
+- View ownership status
 
 ### Collection Dashboard
 
-- View NFTs owned by the connected wallet
-- Display collection statistics
-- View rarity information
-- Open individual NFT details
+The collection section provides:
 
-### Transaction Feedback
+- Owned NFT count
+- Collection overview
+- Collection value
+- Rarity distribution
+- Owned cards
 
-The application provides feedback during blockchain interactions, including:
+### IPFS Storage
 
-- Transaction requests
-- Transaction submission
-- Transaction confirmation
-- Transaction failure
-- Wallet rejection
+IPFS is used to store:
+
+- NFT artwork
+- NFT metadata
+
+The NFT stores an IPFS metadata URI, allowing the blockchain asset to reference decentralized media.
+
+---
 
 ## Architecture
 
-
-                    MythicForge
+```text
+                     MetaMask
+                    Web3 Wallet
                          |
-          +--------------+--------------+
-          |                             |
-       Frontend                     Blockchain
-          |                             |
-   React + TypeScript             Ethereum Sepolia
-          |                             |
-   ethers.js / MetaMask          +------+------+
-          |                       |             |
-          |                  GameCard.sol   Marketplace.sol
-          |                       |             |
-          |                       +------+------+
-          |                              |
-          |                         ERC-721 NFTs
-          |                              |
-          +------------------------------+
+                         v
+                React + TypeScript
+                     Frontend
                          |
-                        IPFS
+              +----------+----------+
+              |                     |
+              v                     v
+        GameCard Contract     Marketplace Contract
+             ERC-721                 |
+              |                      |
+              +----------+-----------+
                          |
-              Artwork + Metadata
+                         v
+                Ethereum Sepolia
+                     Testnet
+                         |
+                         v
+                       IPFS
+                Artwork + Metadata
 Blockchain
-Network
-Network: Ethereum Sepolia Testnet
-Chain ID: 11155111
-Currency: Sepolia ETH
+Property	Value
+Network	Ethereum Sepolia Testnet
+Chain ID	11155111
+NFT Standard	ERC-721
+Currency	Sepolia ETH
+Smart Contract Language	Solidity
+Smart Contracts
 GameCard Contract
 
-The GameCard contract implements an ERC-721 NFT collection.
+The GameCard contract implements ERC-721 NFTs using OpenZeppelin's ERC721URIStorage.
 
-Contract address:
+Contract Address:
 
 0x2e05C142d522c7b6912017c45b068aE5e064bDb9
 
-View GameCard Contract on Sepolia Etherscan
+Explorer:
 
-The contract uses OpenZeppelin's ERC721URIStorage implementation.
+https://sepolia.etherscan.io/address/0x2e05C142d522c7b6912017c45b068aE5e064bDb9
 
-Main functionality:
+The GameCard contract handles:
 
-Mint unique NFT game cards
-Assign unique token IDs
-Store NFT metadata URI
-Store important game-card attributes on-chain
-Track NFT ownership
-Marketplace Contract
+NFT minting
+Unique token IDs
+NFT ownership
+Token metadata URI
+Game card information
 
-The Marketplace contract handles decentralized NFT trading.
+Essential card information stored on-chain includes:
 
-Contract address:
-
-0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5
-
-View Marketplace Contract on Blockscout
-
-Main functionality:
-
-List NFTs
-Set NFT prices
-Buy listed NFTs
-Cancel listings
-Transfer NFTs between users
-Transfer payment to sellers
-Prevent unauthorized listing cancellation
-Prevent sellers from purchasing their own listings
-Protect purchases using reentrancy protection
-
-The Marketplace contract uses NFT escrow. When an NFT is listed, the NFT is transferred to the marketplace contract until the NFT is purchased or the listing is cancelled.
-
-Smart Contract Details
-GameCard.sol
-
-The GameCard smart contract uses:
-
-ERC-721
-ERC721URIStorage
-OpenZeppelin Contracts
-
-Each NFT has:
-
-Unique token ID
 Name
 Description
 Rarity
 Attack
 Defense
-IPFS metadata URI
+Marketplace Contract
 
-The contract stores important gameplay attributes on-chain while richer metadata and artwork are stored through IPFS.
+The Marketplace contract provides decentralized trading functionality for MythicForge NFTs.
 
-Marketplace.sol
+Contract Address:
 
-The Marketplace smart contract uses:
+0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5
 
-ERC-721 interface
-ReentrancyGuard
-Solidity 0.8.24
+Verified Contract:
 
-Marketplace operations include:
+https://eth-sepolia.blockscout.com/address/0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5#code
 
-listCard()
-buyCard()
-unlistCard()
+Marketplace flow:
 
-The contract emits events for marketplace activity:
+Seller
+  |
+  v
+List NFT
+  |
+  v
+NFT transferred to Marketplace escrow
+  |
+  v
+Buyer sends exact ETH price
+  |
+  v
+NFT transferred to Buyer
+  |
+  v
+Seller receives payment
 
-CardListed
-CardSold
-CardUnlisted
+Cancellation flow:
 
-These events provide an on-chain record of marketplace operations.
-
+Listed NFT
+    |
+    v
+Seller cancels listing
+    |
+    v
+NFT returned to Seller
 Game Cards
 
-MythicForge currently contains ten unique game cards.
+MythicForge currently features 10 unique game cards:
 
-Token ID	Card Name	Rarity
-#1	Flame Dragon	Legendary
-#2	Shadow Knight	Epic
-#3	Storm Mage	Rare
-#4	Crystal Golem	Epic
-#5	Void Assassin	Legendary
-#6	Inferno Phoenix	Legendary
-#7	Frost Titan	Epic
-#8	Thunder Beast	Rare
-#9	Blood Moon Samurai	Legendary
-#10	Emerald Guardian	Epic
-
-Each card has its own artwork and IPFS metadata.
-
+Token ID	Card
+#1	Flame Dragon
+#2	Shadow Knight
+#3	Storm Mage
+#4	Crystal Golem
+#5	Void Assassin
+#6	Inferno Phoenix
+#7	Frost Titan
+#8	Thunder Beast
+#9	Blood Moon Samurai
+#10	Emerald Guardian
 IPFS Implementation
 
-MythicForge uses IPFS for decentralized NFT artwork and metadata storage.
+MythicForge uses IPFS for decentralized NFT media storage.
 
-The architecture is:
+The blockchain stores NFT ownership and the metadata URI, while IPFS stores the artwork and rich metadata.
 
-Game Card Artwork
-       |
-       v
-     IPFS
-       |
-       v
-Image CID
-       |
-       v
-NFT Metadata JSON
-       |
-       v
-     IPFS
-       |
-       v
-Metadata CID
-       |
-       v
-GameCard NFT
-       |
-       v
-tokenURI()
+NFT
+ |
+ +-- Metadata URI
+        |
+        +-- IPFS
+             |
+             +-- Card Image
+             +-- Description
+             +-- Rarity
+             +-- Attributes
 
-The metadata contains information such as:
+Example metadata URI:
 
-Card name
-Description
-Image
-Rarity
-Attack
-Defense
-Element
-Speed
-Magic
+ipfs://<metadata-CID>
 
-The NFT stores the IPFS metadata URI through the ERC-721 token URI mechanism.
+Example metadata structure:
 
-Example:
+{
+  "name": "Flame Dragon",
+  "description": "A legendary dragon forged in eternal flame.",
+  "image": "ipfs://<image-CID>",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Attack",
+      "value": 95
+    },
+    {
+      "trait_type": "Defense",
+      "value": 82
+    }
+  ]
+}
 
-ipfs://<metadata-cid>
-
-This allows the NFT metadata and artwork to remain decentralized.
+This approach keeps large media files off-chain while maintaining decentralized references to NFT assets.
 
 Tech Stack
 Frontend
@@ -276,310 +257,218 @@ CSS
 ethers.js
 Blockchain
 Solidity
+Ethereum
 Ethereum Sepolia Testnet
 ERC-721
 OpenZeppelin Contracts
-Hardhat
-Wallet
-MetaMask
 Decentralized Storage
 IPFS
+Development and Testing
+Hardhat
+Mocha
+Chai
+TypeScript
+Wallet
+MetaMask
 Deployment
 Vercel
-Development Tools
-Node.js
-npm
-Git
-GitHub
 Project Structure
 MythicForge/
 |
 ├── contracts/
 │   ├── GameCard.sol
 │   └── Marketplace.sol
-│
+|
 ├── test/
-│   └── Marketplace.js
-│
+│   ├── GameCard.ts
+│   └── Marketplace.ts
+|
 ├── scripts/
-│   └── deploy.js
-│
+│   ├── checkOldListings.ts
+│   ├── checkOwners.ts
+│   └── unlistOldMarketplace.ts
+|
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx
 │   │   ├── App.css
-│   │   └── main.tsx
-│   │
-│   ├── public/
+│   │   └── ...
+│   |
 │   ├── package.json
 │   └── vite.config.ts
-│
+|
 ├── docs/
 │   └── screenshots/
+│       ├── blockchain-transaction.png
+│       ├── buy-transaction-request.png
+│       ├── card-details.png
+│       ├── collection-dashboard.png
 │       ├── homepage.png
 │       ├── marketplace.png
-│       ├── card-details.png
-│       ├── transaction-failed.png
-│       ├── buy-transaction-request.png
-│       ├── transaction-submitted.png
-│       ├── collection-dashboard.png
+│       ├── nft-approval.png
 │       ├── recent-activity.png
-│       ├── blockchain-transaction.png
 │       ├── sell-price.png
-│       └── nft-approval.png
-│
-├── hardhat.config.js
+│       ├── transaction-failed.png
+│       └── transaction-submitted.png
+|
+├── ignition/
+│   └── modules/
+|
+├── hardhat.config.ts
 ├── package.json
-├── README.md
-└── .gitignore
+└── README.md
 Installation
 Prerequisites
 
-Install the following before running the project:
+Install the following:
 
 Node.js
 npm
 Git
-MetaMask browser extension
+MetaMask
 
-Make sure MetaMask is configured for the Ethereum Sepolia Testnet.
+For blockchain transactions, connect MetaMask to the Ethereum Sepolia Testnet and use Sepolia ETH.
 
 Clone the Repository
 git clone https://github.com/prajit003/MythicForge.git
 cd MythicForge
-Install Backend Dependencies
+Install Blockchain Dependencies
 npm install
-Install Frontend Dependencies
-cd frontend
-npm install
-Running the Frontend
+Running Smart Contract Tests
 
-From the frontend directory:
-
-npm run dev
-
-The Vite development server will provide a local URL, normally:
-
-http://localhost:5173
-
-Open the URL in a browser with MetaMask installed.
-
-Connecting MetaMask
-Install MetaMask.
-Create or import a wallet.
-Enable the Ethereum Sepolia Test Network.
-Switch MetaMask to Sepolia.
-Open the MythicForge application.
-Connect the wallet.
-Approve the connection request.
-
-Sepolia ETH is required for blockchain transactions.
-
-Using the Marketplace
-Browse Cards
-
-Open the Marketplace section to view available NFT game cards.
-
-Each card displays information such as:
-
-Card name
-Token ID
-Rarity
-Attack
-Defense
-Price
-View Card Details
-
-Click on a card to open its detailed view.
-
-The detail view provides:
-
-NFT artwork
-Token ID
-Card attributes
-Owner
-Marketplace status
-Current price
-Purchase option
-Buy an NFT
-Select a listed NFT.
-Click the purchase option.
-MetaMask opens a transaction request.
-Review the transaction.
-Confirm the transaction.
-Wait for blockchain confirmation.
-The NFT is transferred to the buyer.
-Sell an NFT
-
-NFT owners can list their NFTs for sale.
-
-The process is:
-
-NFT Owner
-    |
-    v
-Set Selling Price
-    |
-    v
-Approve Marketplace
-    |
-    v
-List NFT
-    |
-    v
-NFT Held by Marketplace
-    |
-    v
-Buyer Purchases NFT
-    |
-    v
-NFT Transferred to Buyer
-Cancel a Listing
-
-The seller can cancel an active listing.
-
-The NFT is returned from marketplace escrow to the seller.
-
-Tests
-
-The project includes automated smart-contract tests using Hardhat and Mocha.
-
-The current test suite contains:
-
-25 passing
-
-The tests cover marketplace functionality including:
-
-Listing an NFT
-Buying a listed NFT
-Cancelling a listing
-Incorrect payment
-Non-owner listing rejection
-Buying an unlisted NFT
-Unauthorized cancellation
-Zero-price rejection
-NFT escrow
-NFT transfer to buyer
-NFT return after cancellation
-Listing removal after sale
-Seller buying their own NFT
-Incorrect payment preserving the listing
-Cancelled listing becoming unavailable
-Sold NFT becoming unavailable
-Failed purchases preserving the listing
-Unauthorized users attempting to cancel active listings
-Running Tests
-
-From the project root:
+Run:
 
 npx hardhat test
 
-Expected result:
+Current test result:
 
 25 passing
-Frontend Build
 
-To create a production build:
+The test suite covers:
+
+NFT minting
+Unique token IDs
+NFT ownership
+Marketplace listing
+NFT escrow
+NFT purchases
+Payment validation
+Listing cancellation
+Ownership validation
+NFT transfers
+Listing cleanup
+Seller restrictions
+Marketplace security cases
+Running the Frontend
+
+Navigate to the frontend directory:
 
 cd frontend
+
+Install dependencies:
+
+npm install
+
+Start the development server:
+
+npm run dev
+
+The application will normally be available at:
+
+http://localhost:5173
+Production Build
+
+Run:
+
 npm run build
 
-The production files are generated inside:
+The production build is generated in:
 
-frontend/dist/
-
-The build can then be deployed to a hosting service such as Vercel.
-
-Deployment
-
-The frontend is deployed using Vercel.
-
-Live application:
-
-https://mythic-forge1.vercel.app/
-
-The application connects to the Ethereum Sepolia Testnet and interacts with the deployed smart contracts.
-
+frontend/dist
 Security
 
-The Marketplace contract includes several security checks.
-
-Ownership Verification
-
-Only the current NFT owner can list an NFT.
-
-Price Validation
-
-Listings require a price greater than zero.
-
-Payment Validation
-
-The buyer must send exactly the listed price.
-
-Seller Restriction
-
-A seller cannot purchase their own listing.
-
-Listing Validation
-
-An NFT must be actively listed before it can be purchased.
-
-Authorization
-
-Only the seller who created a listing can cancel it.
+The marketplace contract includes several protections.
 
 Reentrancy Protection
 
-The purchase function uses OpenZeppelin's ReentrancyGuard to reduce the risk of reentrancy attacks.
+Purchase transactions use OpenZeppelin's ReentrancyGuard.
 
-Escrow
+Ownership Validation
 
-Listed NFTs are transferred to the Marketplace contract until they are sold or unlisted.
+Only the current NFT owner can list a card.
 
-Testing Strategy
+Price Validation
 
-The smart contracts were tested against both successful and unsuccessful scenarios.
+Listings must have a price greater than zero.
 
-Testing focuses on:
+Exact Payment
 
-Normal Operations
-       |
-       +-- List NFT
-       +-- Buy NFT
-       +-- Cancel Listing
+Buyers must send exactly the listed ETH amount.
 
-Invalid Operations
-       |
-       +-- Incorrect Payment
-       +-- Zero Price
-       +-- Non-owner Listing
-       +-- Unauthorized Cancellation
-       +-- Buying Unlisted NFT
-       +-- Seller Buying Own NFT
+Seller Protection
 
-Security
-       |
-       +-- Escrow Verification
-       +-- Ownership Verification
-       +-- Listing State
-       +-- Reentrancy Protection
+A seller cannot purchase their own listing.
+
+Listing Authorization
+
+Only the seller who created a listing can cancel it.
+
+Listing Cleanup
+
+Listings are removed after successful purchases or cancellations.
+
+Testing
+
+MythicForge currently has:
+
+25 passing tests
+
+The tests cover both the GameCard NFT contract and Marketplace contract.
+
+Marketplace test coverage includes:
+
+List NFT
+Buy NFT
+Cancel Listing
+Incorrect Payment
+Non-owner Listing
+Unlisted NFT Purchase
+Unauthorized Cancellation
+Zero Price Rejection
+NFT Escrow
+NFT Transfer
+Listing Removal
+Seller Cannot Buy Own NFT
+Failed Purchase Handling
+Cancelled Listing Protection
+Sold NFT Protection
+Unauthorized Access Protection
 Problem Statement
 
-Build a decentralized marketplace where users can mint, list, and buy unique digital game cards on a blockchain testnet.
+Traditional digital game items are commonly controlled by centralized platforms.
 
-The marketplace should provide:
+Users may not have transparent ownership of their digital assets, and transactions often depend on centralized marketplace infrastructure.
 
-Unique NFT game cards
-Decentralized ownership
-IPFS-based artwork and metadata
-Wallet connectivity
-NFT listing
-NFT purchasing
-NFT collection display
-Marketplace gallery
-Testnet blockchain interaction
+MythicForge explores a decentralized approach using blockchain NFTs.
 
-MythicForge addresses this problem through an ERC-721 based NFT system and a decentralized marketplace smart contract deployed on Ethereum Sepolia.
+Game Card
+    |
+    v
+ERC-721 NFT
+    |
+    v
+Blockchain Ownership
+    |
+    v
+IPFS Artwork + Metadata
+    |
+    v
+Decentralized Marketplace
+    |
+    v
+Blockchain-Based Trading
+
+The goal is to provide transparent digital ownership and peer-to-peer trading of unique game cards.
 
 ## Screenshots
 
@@ -651,81 +540,91 @@ MetaMask requests approval before allowing the marketplace smart contract to tra
 
 ![NFT Marketplace Approval](./docs/screenshots/nft-approval.png)
 
-MetaMask requests approval before allowing the marketplace smart contract to transfer the NFT on behalf of its owner.
+Deployment
 
-Deployment Information
-Frontend
+The frontend is deployed using Vercel.
 
-Deployed on Vercel:
-
-MythicForge
-
-Blockchain
-
-Network:
-
-Ethereum Sepolia Testnet
-Chain ID: 11155111
-GameCard Contract
-0x2e05C142d522c7b6912017c45b068aE5e064bDb9
-
-GameCard Contract
-
-Marketplace Contract
-0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5
-
-Marketplace Contract
-
-Future Improvements
-
-Potential future improvements include:
-
-NFT filtering by rarity
-Advanced marketplace search
-Sorting by price and rarity
-Marketplace activity history
-Improved transaction history
-Additional game-card attributes
-Card battling functionality
-Card upgrading and crafting
-User profiles
-Creator royalties
-Multi-chain support
-More advanced IPFS integrations
-Improved mobile wallet compatibility
-Project Highlights
-
-MythicForge demonstrates practical implementation of:
-
-Blockchain development
-Solidity smart contracts
-ERC-721 NFTs
-NFT marketplaces
-IPFS decentralized storage
-MetaMask wallet integration
-Ethereum Sepolia Testnet
-Smart contract security
-Automated contract testing
-React and TypeScript frontend development
-Vercel deployment
-GitHub project management
-Important Links
-Live Demo
+Live Application:
 
 https://mythic-forge1.vercel.app/
 
-GitHub Repository
+The smart contracts are deployed on the Ethereum Sepolia Testnet.
+
+Future Improvements
+
+Possible future enhancements include:
+
+Creator royalties
+Advanced marketplace analytics
+On-chain marketplace activity indexing
+NFT-to-NFT trading
+Batch NFT minting
+More game-card attributes
+Card animations
+Rarity-based visual effects
+Multiple blockchain networks
+Advanced transaction history
+Mobile wallet optimization
+Automated IPFS pinning
+Marketplace statistics
+User profiles
+Leaderboards
+Project Highlights
+
+MythicForge combines:
+
+React
++
+Web3
++
+Solidity
++
+ERC-721 NFTs
++
+Ethereum Sepolia
++
+IPFS
++
+MetaMask
++
+Decentralized Marketplace
+
+The project demonstrates the complete NFT lifecycle:
+
+Mint
+  |
+  v
+Store Metadata
+  |
+  v
+Own
+  |
+  v
+List
+  |
+  v
+Buy
+  |
+  v
+Transfer
+Important Links
+
+Live Application:
+
+https://mythic-forge1.vercel.app/
+
+GitHub Repository:
 
 https://github.com/prajit003/MythicForge
 
-GameCard Contract
+GameCard Contract:
 
 https://sepolia.etherscan.io/address/0x2e05C142d522c7b6912017c45b068aE5e064bDb9
 
-Marketplace Contract
+Marketplace Contract:
 
 https://eth-sepolia.blockscout.com/address/0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5#code
 
 License
 
-This project is developed for educational and demonstration purposes.
+This project is created for educational and demonstration purposes.
