@@ -581,51 +581,75 @@ Testnet blockchain interaction
 
 MythicForge addresses this problem through an ERC-721 based NFT system and a decentralized marketplace smart contract deployed on Ethereum Sepolia.
 
-Screenshots
+## Screenshots
 
 The following screenshots demonstrate the main features and blockchain interactions of MythicForge on the Ethereum Sepolia Testnet.
 
-1. Homepage
+### 1. Homepage
 
 The MythicForge homepage with MetaMask connected to the Ethereum Sepolia Testnet.
 
-2. Marketplace
+![MythicForge Homepage](./docs/screenshots/homepage.png)
+
+### 2. Marketplace
 
 The marketplace displays available NFT game cards along with their rarity, attack, defense, price, and purchase options.
 
-3. NFT Card Details
+![MythicForge Marketplace](./docs/screenshots/marketplace.png)
+
+### 3. NFT Card Details
 
 Detailed view of an NFT game card showing its token ID, attributes, current owner, marketplace status, price, and purchase option.
 
-4. Transaction Failed
+![NFT Card Details](./docs/screenshots/card-details.png)
+
+### 4. Transaction Failed
 
 The frontend displays an error message when a blockchain transaction fails or is rejected.
 
-5. Buy Transaction Request
+![Transaction Failed](./docs/screenshots/transaction-failed.png)
+
+### 5. Buy Transaction Request
 
 MetaMask transaction request for purchasing the Flame Dragon NFT using Sepolia ETH.
 
-6. Transaction Submitted
+![Buy Transaction Request](./docs/screenshots/buy-transaction-request.png)
+
+### 6. Transaction Submitted
 
 The application waits for blockchain confirmation after the NFT purchase transaction is submitted through MetaMask.
 
-7. Collection Dashboard
+![Transaction Submitted](./docs/screenshots/transaction-submitted.png)
+
+### 7. Collection Dashboard
 
 The My Collection dashboard displays the NFTs owned by the connected wallet along with collection statistics and rarity information.
 
-8. Recent Marketplace Activity
+![Collection Dashboard](./docs/screenshots/collection-dashboard.png)
+
+### 8. Recent Marketplace Activity
 
 The Recent Activity section demonstrates marketplace transaction activity.
 
-9. Blockchain Transaction Verification
+![Recent Marketplace Activity](./docs/screenshots/recent-activity.png)
+
+### 9. Blockchain Transaction Verification
 
 A successful NFT transaction can be independently verified on the Ethereum Sepolia blockchain explorer.
 
-10. Sell NFT – Set Price
+![Blockchain Transaction](./docs/screenshots/blockchain-transaction.png)
+
+### 10. Sell NFT – Set Price
 
 NFT owners can list their cards for sale by entering a selling price in ETH.
 
-11. NFT Marketplace Approval
+![Set NFT Selling Price](./docs/screenshots/sell-price.png)
+
+### 11. NFT Marketplace Approval
+
+MetaMask requests approval before allowing the marketplace smart contract to transfer the NFT on behalf of its owner.
+
+![NFT Marketplace Approval](./docs/screenshots/nft-approval.png)
 
 MetaMask requests approval before allowing the marketplace smart contract to transfer the NFT on behalf of its owner.
 
