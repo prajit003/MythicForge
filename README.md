@@ -113,6 +113,8 @@ The NFT stores an IPFS metadata URI, allowing the blockchain asset to reference 
                          v
                        IPFS
                 Artwork + Metadata
+---
+
 Blockchain
 Property	Value
 Network	Ethereum Sepolia Testnet
