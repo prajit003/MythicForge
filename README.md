@@ -87,7 +87,7 @@ The application provides feedback during blockchain interactions, including:
 
 ## Architecture
 
-```text
+
                     MythicForge
                          |
           +--------------+--------------+
