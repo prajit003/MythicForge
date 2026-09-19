@@ -682,11 +682,10 @@ function App() {
 
       setLoadingCards(true);
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
-
+      const provider = new ethers.JsonRpcProvider(
+        "https://public.1rpc.io/sepolia",
+        11155111
+          );
       const gameCard =
         new ethers.Contract(
           GAME_CARD_ADDRESS,
