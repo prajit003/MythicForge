@@ -670,133 +670,167 @@ function App() {
    */
 
   async function loadCards(
-    walletAddress: string
-  ) {
-    const currentRequest =
-      ++loadRequestId.current;
+  walletAddress: string
+) {
+  const currentRequest =
+    ++loadRequestId.current;
 
-    try {
-      if (!window.ethereum) {
-        return;
-      }
+  try {
+    setLoadingCards(true);
 
-      setLoadingCards(true);
-
-      const provider = new ethers.JsonRpcProvider(
-        "https://public.1rpc.io/sepolia",
+    const provider =
+      new ethers.JsonRpcProvider(
+        "https://ethereum-sepolia.publicnode.com",
         11155111
-          );
-      const gameCard =
-        new ethers.Contract(
-          GAME_CARD_ADDRESS,
-          GAME_CARD_ABI,
-          provider
-        );
+      );
 
-      const marketplace =
-        new ethers.Contract(
-          MARKETPLACE_ADDRESS,
-          MARKETPLACE_ABI,
-          provider
-        );
+    const gameCard =
+      new ethers.Contract(
+        GAME_CARD_ADDRESS,
+        GAME_CARD_ABI,
+        provider
+      );
 
-      const loadedCards: Card[] =
-        [];
+    const marketplace =
+      new ethers.Contract(
+        MARKETPLACE_ADDRESS,
+        MARKETPLACE_ABI,
+        provider
+      );
 
-      for (const tokenId of CARD_IDS) {
+    const loadedCards: Card[] = [];
+
+    async function readWithRetry<T>(
+      readFunction: () => Promise<T>,
+      attempts = 3
+    ): Promise<T> {
+      let lastError: unknown;
+
+      for (
+        let attempt = 1;
+        attempt <= attempts;
+        attempt++
+      ) {
         try {
-          const owner =
-            await gameCard.ownerOf(
-              tokenId
-            );
-
-          const cardData =
-            await gameCard.getCard(
-              tokenId
-            );
-
-          const listing =
-            await marketplace.listings(
-              tokenId
-            );
-
-          const listed =
-            listing.seller !==
-            ethers.ZeroAddress;
-
-          const imageCID =
-            IMAGE_CIDS[tokenId];
-
-          const image = imageCID
-            ? ipfsUrl(
-                imageCID,
-                0
-              )
-            : "";
-
-          loadedCards.push({
-            tokenId,
-            name: cardData.name,
-            description:
-              cardData.description,
-            rarity: cardData.rarity,
-            attack: Number(
-              cardData.attack
-            ),
-            defense: Number(
-              cardData.defense
-            ),
-            image,
-            owner,
-            listed,
-            price: listed
-              ? ethers.formatEther(
-                  listing.price
-                )
-              : "0",
-          });
+          return await readFunction();
         } catch (error) {
-          console.log(
-            `Token #${tokenId} could not be loaded.`,
-            error
-          );
+          lastError = error;
+
+          if (attempt < attempts) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 500)
+            );
+          }
         }
       }
 
-      if (
-        currentRequest !==
-        loadRequestId.current
-      ) {
-        return;
-      }
+      throw lastError;
+    }
 
-      setCards(
-        loadedCards
-      );
+    for (const tokenId of CARD_IDS) {
+      try {
+        const owner =
+          await readWithRetry(() =>
+            gameCard.ownerOf(tokenId)
+          );
 
-      setAccount(
-        walletAddress
-      );
-    } catch (error) {
-      console.error(error);
+        const cardData =
+          await readWithRetry(() =>
+            gameCard.getCard(tokenId)
+          );
 
-      if (
-        currentRequest ===
-        loadRequestId.current
-      ) {
-        setStatus(
-          "Failed to load cards from the blockchain."
+        const listing =
+          await readWithRetry(() =>
+            marketplace.listings(tokenId)
+          );
+
+        const listed =
+          listing.seller !==
+          ethers.ZeroAddress;
+
+        const imageCID =
+          IMAGE_CIDS[tokenId];
+
+        const image = imageCID
+          ? ipfsUrl(imageCID, 0)
+          : "";
+
+        loadedCards.push({
+          tokenId,
+          name: cardData.name,
+          description:
+            cardData.description,
+          rarity: cardData.rarity,
+          attack: Number(
+            cardData.attack
+          ),
+          defense: Number(
+            cardData.defense
+          ),
+          image,
+          owner,
+          listed,
+          price: listed
+            ? ethers.formatEther(
+                listing.price
+              )
+            : "0",
+        });
+
+        console.log(
+          `Token #${tokenId} loaded successfully.`
+        );
+      } catch (error) {
+        console.error(
+          `Token #${tokenId} could not be loaded after retries.`,
+          error
         );
       }
-    } finally {
-      if (
-        currentRequest ===
-        loadRequestId.current
-      ) {
-        setLoadingCards(false);
-      }
+    }
+
+    if (
+      currentRequest !==
+      loadRequestId.current
+    ) {
+      return;
+    }
+
+    setCards(loadedCards);
+
+    setAccount(
+      walletAddress
+    );
+
+    if (
+      loadedCards.length === 0
+    ) {
+      setStatus(
+        "Unable to load cards from the Sepolia blockchain."
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Failed to load cards:",
+      error
+    );
+
+    if (
+      currentRequest ===
+      loadRequestId.current
+    ) {
+      setStatus(
+        "Failed to load cards from the blockchain."
+      );
+    }
+  } finally {
+    if (
+      currentRequest ===
+      loadRequestId.current
+    ) {
+      setLoadingCards(false);
     }
   }
+}
 
   /*
    * =====================================================
