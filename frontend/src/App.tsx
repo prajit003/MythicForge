@@ -14,11 +14,8 @@ declare global {
   }
 }
 
-const GAME_CARD_ADDRESS =
-  "0x2e05C142d522c7b6912017c45b068aE5e064bDb9";
-
-const MARKETPLACE_ADDRESS =
-  "0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5";
+const GAME_CARD_ADDRESS = "0x2e05C142d522c7b6912017c45b068aE5e064bDb9";
+const MARKETPLACE_ADDRESS = "0x10eBcaaAbE901DBc33f93Eb2847e455949EC80e5";
 
 const GAME_CARD_ABI = [
   "function ownerOf(uint256 tokenId) view returns (address)",
@@ -37,7 +34,7 @@ const MARKETPLACE_ABI = [
   "event CardUnlisted(uint256 indexed tokenId, address indexed seller)",
 ];
 
-type Card = {
+export type Card = {
   tokenId: number;
   name: string;
   description: string;
@@ -50,7 +47,7 @@ type Card = {
   price: string;
 };
 
-type Activity = {
+export type Activity = {
   type: "LISTED" | "SOLD" | "UNLISTED";
   tokenId: number;
   cardName: string;
@@ -61,18 +58,14 @@ type Activity = {
   blockNumber: number;
 };
 
-const CARD_IDS = [
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-];
+export type Toast = {
+  id: number;
+  message: string;
+  type: "success" | "error" | "info" | "pending";
+  txHash?: string;
+};
+
+const CARD_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const IMAGE_CIDS: Record<number, string> = {
   1: "bafybeie5n5h7c3647uxedsvccpsjcxiopypco2m73wpycaim3ryogay32i",
@@ -87,6 +80,19 @@ const IMAGE_CIDS: Record<number, string> = {
   10: "bafybeib6szx2jv7tx542qnlvovhf5763h7rwnwlfcbe5a7wvsdryhjuiji",
 };
 
+const ELEMENT_INFO: Record<number, { name: string; icon: string; bg: string }> = {
+  1: { name: "Fire", icon: "🔥", bg: "rgba(249, 115, 22, 0.15)" },
+  2: { name: "Shadow", icon: "🗡️", bg: "rgba(168, 85, 247, 0.15)" },
+  3: { name: "Lightning", icon: "⚡", bg: "rgba(234, 179, 8, 0.15)" },
+  4: { name: "Crystal", icon: "💎", bg: "rgba(6, 182, 212, 0.15)" },
+  5: { name: "Void", icon: "🔮", bg: "rgba(236, 72, 153, 0.15)" },
+  6: { name: "Inferno", icon: "🔥", bg: "rgba(239, 68, 68, 0.15)" },
+  7: { name: "Frost", icon: "❄️", bg: "rgba(56, 189, 248, 0.15)" },
+  8: { name: "Thunder", icon: "⚡", bg: "rgba(245, 158, 11, 0.15)" },
+  9: { name: "Blood", icon: "🩸", bg: "rgba(220, 38, 38, 0.15)" },
+  10: { name: "Nature", icon: "🌿", bg: "rgba(16, 185, 129, 0.15)" },
+};
+
 const IPFS_GATEWAYS = [
   "https://violet-labour-skink-360.mypinata.cloud/ipfs/",
   "https://gateway.pinata.cloud/ipfs/",
@@ -94,50 +100,71 @@ const IPFS_GATEWAYS = [
   "https://dweb.link/ipfs/",
 ];
 
-function ipfsUrl(
-  cid: string,
-  gateway = 0
-) {
+const PUBLIC_RPC_ENDPOINTS = [
+  "https://ethereum-sepolia.publicnode.com",
+  "https://rpc.ankr.com/eth_sepolia",
+  "https://sepolia.drpc.org",
+  "https://rpc.sepolia.org",
+];
+
+function ipfsUrl(cid: string, gateway = 0) {
   return IPFS_GATEWAYS[gateway] + cid;
+}
+
+function getFallbackProvider() {
+  for (const url of PUBLIC_RPC_ENDPOINTS) {
+    try {
+      return new ethers.JsonRpcProvider(url, 11155111);
+    } catch {
+      continue;
+    }
+  }
+  return new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com", 11155111);
 }
 
 function App() {
   const [account, setAccount] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
-  const [activities, setActivities] =
-    useState<Activity[]>([]);
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingCards, setLoadingCards] =
-    useState(false);
-  const [selectedCard, setSelectedCard] =
-    useState<Card | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  // Modals
+  const [sellModalCard, setSellModalCard] = useState<Card | null>(null);
+  const [sellPriceInput, setSellPriceInput] = useState("");
 
-  const [rarityFilter, setRarityFilter] =
-    useState("All");
+  const [transferModalCard, setTransferModalCard] = useState<Card | null>(null);
+  const [recipientAddress, setRecipientAddress] = useState("");
 
-  const [sortOption, setSortOption] =
-    useState("default");
+  // Navigation & Filtering
+  const [activeTab, setActiveTab] = useState<"marketplace" | "collection" | "all" | "activity" | "about">("marketplace");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [rarityFilter, setRarityFilter] = useState("All");
+  const [sortOption, setSortOption] = useState("default");
 
-  const [transferCardId, setTransferCardId] =
-    useState<number | null>(null);
-
-  const [recipientAddress, setRecipientAddress] =
-    useState("");
-
+  // Toast System
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastIdCounter = useRef(0);
   const loadRequestId = useRef(0);
 
-  function getCardName(tokenId: number) {
-    const existing = cards.find(
-      (card) => card.tokenId === tokenId
-    );
-
-    if (existing) {
-      return existing.name;
+  function addToast(message: string, type: Toast["type"] = "info", txHash?: string) {
+    const id = ++toastIdCounter.current;
+    setToasts((prev) => [...prev.slice(-3), { id, message, type, txHash }]);
+    if (type !== "pending") {
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 6000);
     }
+  }
+
+  function removeToast(id: number) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  function getCardName(tokenId: number) {
+    const existing = cards.find((card) => card.tokenId === tokenId);
+    if (existing) return existing.name;
 
     const names: Record<number, string> = {
       1: "Flame Dragon",
@@ -151,37 +178,22 @@ function App() {
       9: "Blood Moon Samurai",
       10: "Emerald Guardian",
     };
-
     return names[tokenId] || `Token #${tokenId}`;
   }
 
   function rarityClass(rarity: string) {
-    return `rarity-${rarity
-      .toLowerCase()
-      .replace(/\s+/g, "-")}`;
+    return `rarity-${rarity.toLowerCase().replace(/\s+/g, "-")}`;
   }
 
   function shortenAddress(address: string) {
-    if (!address) {
-      return "Unknown";
-    }
-
-    return `${address.slice(
-      0,
-      6
-    )}...${address.slice(-4)}`;
+    if (!address) return "Unknown";
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
   function getCardHistory(tokenId: number) {
     return activities
-      .filter(
-        (activity) =>
-          activity.tokenId === tokenId
-      )
-      .sort(
-        (a, b) =>
-          b.blockNumber - a.blockNumber
-      );
+      .filter((activity) => activity.tokenId === tokenId)
+      .sort((a, b) => b.blockNumber - a.blockNumber);
   }
 
   /*
@@ -189,177 +201,77 @@ function App() {
    * LOAD MARKETPLACE ACTIVITY
    * =====================================================
    */
-
   async function loadActivity() {
     try {
-      if (!window.ethereum) {
-        return;
-      }
+      const provider = window.ethereum
+        ? new ethers.BrowserProvider(window.ethereum)
+        : getFallbackProvider();
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
-
-      const gameCard =
-        new ethers.Contract(
-          GAME_CARD_ADDRESS,
-          GAME_CARD_ABI,
-          provider
-        );
-
-      const marketplaceInterface =
-        new ethers.Interface(
-          MARKETPLACE_ABI
-        );
-
+      const gameCard = new ethers.Contract(GAME_CARD_ADDRESS, GAME_CARD_ABI, provider);
+      const marketplaceInterface = new ethers.Interface(MARKETPLACE_ABI);
       const history: Activity[] = [];
 
-      let nextPageParams:
-        | Record<
-            string,
-            string | number
-          >
-        | null = null;
-
+      let nextPageParams: Record<string, string | number> | null = null;
       let pages = 0;
-
-      /*
-       * First attempt:
-       * Blockscout v2 logs API
-       */
 
       do {
         const apiUrl = new URL(
           `https://eth-sepolia.blockscout.com/api/v2/addresses/${MARKETPLACE_ADDRESS}/logs`
         );
-
         if (nextPageParams) {
-          for (const [
-            key,
-            value,
-          ] of Object.entries(
-            nextPageParams
-          )) {
-            apiUrl.searchParams.set(
-              key,
-              String(value)
-            );
+          for (const [key, value] of Object.entries(nextPageParams)) {
+            apiUrl.searchParams.set(key, String(value));
           }
         }
 
-        const response = await fetch(
-          apiUrl.toString()
-        );
+        const response = await fetch(apiUrl.toString());
+        if (!response.ok) break;
 
-        if (!response.ok) {
-          throw new Error(
-            `Activity API returned ${response.status}`
-          );
-        }
-
-        const payload =
-          await response.json();
-
-        const items = Array.isArray(
-          payload.items
-        )
-          ? payload.items
-          : [];
+        const payload = await response.json();
+        const items = Array.isArray(payload.items) ? payload.items : [];
 
         for (const rawLog of items) {
           try {
-            const parsed =
-              marketplaceInterface.parseLog(
-                {
-                  topics:
-                    rawLog.topics,
-                  data: rawLog.data,
-                }
-              );
+            const parsed = marketplaceInterface.parseLog({
+              topics: rawLog.topics,
+              data: rawLog.data,
+            });
 
-            if (!parsed) {
+            if (!parsed) continue;
+            const eventName = parsed.name;
+            if (eventName !== "CardListed" && eventName !== "CardSold" && eventName !== "CardUnlisted") {
               continue;
             }
 
-            const eventName =
-              parsed.name;
-
-            if (
-              eventName !==
-                "CardListed" &&
-              eventName !==
-                "CardSold" &&
-              eventName !==
-                "CardUnlisted"
-            ) {
-              continue;
-            }
-
-            const tokenId = Number(
-              parsed.args.tokenId
-            );
-
-            let cardName =
-              getCardName(tokenId);
+            const tokenId = Number(parsed.args.tokenId);
+            let cardName = getCardName(tokenId);
 
             try {
-              const card =
-                await gameCard.getCard(
-                  tokenId
-                );
-
+              const card = await gameCard.getCard(tokenId);
               cardName = card.name;
             } catch {}
 
-            const blockNumber =
-              Number(
-                rawLog.block_number ??
-                  0
-              );
+            const blockNumber = Number(rawLog.block_number ?? 0);
+            const transactionHash = String(rawLog.transaction_hash || "");
 
-            const transactionHash =
-              String(
-                rawLog.transaction_hash ||
-                  ""
-              );
-
-            if (
-              eventName ===
-              "CardListed"
-            ) {
+            if (eventName === "CardListed") {
               history.push({
                 type: "LISTED",
                 tokenId,
                 cardName,
-                price:
-                  ethers.formatEther(
-                    parsed.args.price
-                  ),
-                seller: String(
-                  parsed.args.seller
-                ),
+                price: ethers.formatEther(parsed.args.price),
+                seller: String(parsed.args.seller),
                 transactionHash,
                 blockNumber,
               });
-            } else if (
-              eventName ===
-              "CardSold"
-            ) {
+            } else if (eventName === "CardSold") {
               history.push({
                 type: "SOLD",
                 tokenId,
                 cardName,
-                price:
-                  ethers.formatEther(
-                    parsed.args.price
-                  ),
-                seller: String(
-                  parsed.args.seller
-                ),
-                buyer: String(
-                  parsed.args.buyer
-                ),
+                price: ethers.formatEther(parsed.args.price),
+                seller: String(parsed.args.seller),
+                buyer: String(parsed.args.buyer),
                 transactionHash,
                 blockNumber,
               });
@@ -369,483 +281,208 @@ function App() {
                 tokenId,
                 cardName,
                 price: "0",
-                seller: String(
-                  parsed.args.seller
-                ),
+                seller: String(parsed.args.seller),
                 transactionHash,
                 blockNumber,
               });
             }
-          } catch (eventError) {
-            console.warn(
-              "Skipping unreadable marketplace log:",
-              eventError
-            );
-          }
+          } catch {}
         }
 
-        nextPageParams =
-          payload.next_page_params &&
-          typeof payload.next_page_params ===
-            "object"
-            ? payload.next_page_params
-            : null;
-
+        nextPageParams = payload.next_page_params && typeof payload.next_page_params === "object"
+          ? payload.next_page_params
+          : null;
         pages += 1;
-      } while (
-        nextPageParams &&
-        pages < 20
-      );
+      } while (nextPageParams && pages < 10);
 
-      const uniqueHistory =
-        Array.from(
-          new Map(
-            history.map((item) => [
-              `${item.transactionHash}-${item.type}-${item.tokenId}`,
-              item,
-            ])
-          ).values()
-        );
+      const uniqueHistory = Array.from(
+        new Map(history.map((item) => [`${item.transactionHash}-${item.type}-${item.tokenId}`, item])).values()
+      ).sort((a, b) => b.blockNumber - a.blockNumber);
 
-      uniqueHistory.sort(
-        (a, b) =>
-          b.blockNumber -
-          a.blockNumber
-      );
-
-      setActivities(
-        uniqueHistory
-      );
-
-      console.info(
-        `Loaded ${uniqueHistory.length} marketplace activities from Blockscout.`
-      );
-
-      return;
-    } catch (error) {
-      console.error(
-        "Blockscout activity loading failed:",
-        error
-      );
+      setActivities(uniqueHistory);
+    } catch {
+      await loadActivityRpcFallback();
     }
+  }
 
-    /*
-     * =================================================
-     * RPC FALLBACK
-     * =================================================
-     */
-
+  async function loadActivityRpcFallback() {
     try {
-      if (!window.ethereum) {
-        return;
-      }
+      const provider = getFallbackProvider();
+      const marketplace = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, provider);
+      const gameCard = new ethers.Contract(GAME_CARD_ADDRESS, GAME_CARD_ABI, provider);
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
+      const latestBlock = await provider.getBlockNumber();
+      const fromBlock = Math.max(0, latestBlock - 500_000);
 
-      const marketplace =
-        new ethers.Contract(
-          MARKETPLACE_ADDRESS,
-          MARKETPLACE_ABI,
-          provider
-        );
-
-      /*
-       * FIX:
-       * gameCard must also be created inside
-       * this fallback scope.
-       */
-
-      const gameCard =
-        new ethers.Contract(
-          GAME_CARD_ADDRESS,
-          GAME_CARD_ABI,
-          provider
-        );
-
-      const latestBlock =
-        await provider.getBlockNumber();
-
-      const rangeSize = 50_000;
-
-      const fromBlock = Math.max(
-        0,
-        latestBlock - 1_000_000
-      );
-
-      const fallbackHistory:
-        Activity[] = [];
-
+      const fallbackHistory: Activity[] = [];
       const filters = [
         marketplace.filters.CardListed(),
         marketplace.filters.CardSold(),
         marketplace.filters.CardUnlisted(),
       ];
 
-      for (
-        let startBlock = fromBlock;
-        startBlock <= latestBlock;
-        startBlock += rangeSize
-      ) {
-        const endBlock = Math.min(
-          latestBlock,
-          startBlock +
-            rangeSize -
-            1
-        );
+      for (const filter of filters) {
+        const events = await marketplace.queryFilter(filter, fromBlock, latestBlock);
+        for (const event of events) {
+          const log = event as ethers.EventLog;
+          const tokenId = Number(log.args.tokenId);
+          let cardName = getCardName(tokenId);
 
-        for (const filter of filters) {
-          const events =
-            await marketplace.queryFilter(
-              filter,
-              startBlock,
-              endBlock
-            );
+          try {
+            const card = await gameCard.getCard(tokenId);
+            cardName = card.name;
+          } catch {}
 
-          for (const event of events) {
-            const log =
-              event as ethers.EventLog;
-
-            const tokenId = Number(
-              log.args.tokenId
-            );
-
-            let cardName =
-              getCardName(tokenId);
-
-            try {
-              const card =
-                await gameCard.getCard(
-                  tokenId
-                );
-
-              cardName = card.name;
-            } catch {}
-
-            if (
-              log.fragment.name ===
-              "CardListed"
-            ) {
-              fallbackHistory.push({
-                type: "LISTED",
-                tokenId,
-                cardName,
-                price:
-                  ethers.formatEther(
-                    log.args.price
-                  ),
-                seller: String(
-                  log.args.seller
-                ),
-                transactionHash:
-                  log.transactionHash,
-                blockNumber:
-                  log.blockNumber,
-              });
-            } else if (
-              log.fragment.name ===
-              "CardSold"
-            ) {
-              fallbackHistory.push({
-                type: "SOLD",
-                tokenId,
-                cardName,
-                price:
-                  ethers.formatEther(
-                    log.args.price
-                  ),
-                seller: String(
-                  log.args.seller
-                ),
-                buyer: String(
-                  log.args.buyer
-                ),
-                transactionHash:
-                  log.transactionHash,
-                blockNumber:
-                  log.blockNumber,
-              });
-            } else {
-              fallbackHistory.push({
-                type: "UNLISTED",
-                tokenId,
-                cardName,
-                price: "0",
-                seller: String(
-                  log.args.seller
-                ),
-                transactionHash:
-                  log.transactionHash,
-                blockNumber:
-                  log.blockNumber,
-              });
-            }
+          if (log.fragment.name === "CardListed") {
+            fallbackHistory.push({
+              type: "LISTED",
+              tokenId,
+              cardName,
+              price: ethers.formatEther(log.args.price),
+              seller: String(log.args.seller),
+              transactionHash: log.transactionHash,
+              blockNumber: log.blockNumber,
+            });
+          } else if (log.fragment.name === "CardSold") {
+            fallbackHistory.push({
+              type: "SOLD",
+              tokenId,
+              cardName,
+              price: ethers.formatEther(log.args.price),
+              seller: String(log.args.seller),
+              buyer: String(log.args.buyer),
+              transactionHash: log.transactionHash,
+              blockNumber: log.blockNumber,
+            });
+          } else {
+            fallbackHistory.push({
+              type: "UNLISTED",
+              tokenId,
+              cardName,
+              price: "0",
+              seller: String(log.args.seller),
+              transactionHash: log.transactionHash,
+              blockNumber: log.blockNumber,
+            });
           }
         }
       }
 
-      fallbackHistory.sort(
-        (a, b) =>
-          b.blockNumber -
-          a.blockNumber
-      );
-
-      setActivities(
-        fallbackHistory
-      );
-
-      console.info(
-        `Loaded ${fallbackHistory.length} marketplace activities from RPC fallback.`
-      );
-    } catch (fallbackError) {
-      console.error(
-        "Activity fallback failed:",
-        fallbackError
-      );
-
+      fallbackHistory.sort((a, b) => b.blockNumber - a.blockNumber);
+      setActivities(fallbackHistory);
+    } catch {
       setActivities([]);
     }
   }
 
   /*
    * =====================================================
-   * CONNECT WALLET
+   * CONNECT / DISCONNECT WALLET
    * =====================================================
    */
-
   async function connectWallet() {
     try {
       if (!window.ethereum) {
-        setStatus(
-          "Please install MetaMask."
-        );
+        addToast("Please install MetaMask to interact with MythicForge.", "error");
         return;
       }
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      if (!accounts.length) return;
 
-      const accounts =
-        await provider.send(
-          "eth_requestAccounts",
-          []
-        );
-
-      if (!accounts.length) {
-        return;
-      }
-
-      const newAccount =
-        accounts[0];
-
+      const newAccount = accounts[0];
       setAccount(newAccount);
-      setCards([]);
+      addToast(`Connected wallet ${shortenAddress(newAccount)}`, "success");
 
-      setStatus(
-        "Wallet connected successfully!"
-      );
-
-      await loadCards(
-        newAccount
-      );
-
+      await loadCards(newAccount);
       await loadActivity();
     } catch (error) {
       console.error(error);
-
-      setStatus(
-        "Failed to connect wallet."
-      );
+      addToast("Failed to connect MetaMask wallet.", "error");
     }
+  }
+
+  function disconnectWallet() {
+    setAccount("");
+    addToast("Wallet disconnected.", "info");
   }
 
   /*
    * =====================================================
-   * LOAD CARDS
+   * LOAD CARDS (Parallelized Batch Loading)
    * =====================================================
    */
+  async function loadCards(walletAddress?: string) {
+    const currentRequest = ++loadRequestId.current;
+    try {
+      setLoadingCards(true);
+      const provider = getFallbackProvider();
+      const gameCard = new ethers.Contract(GAME_CARD_ADDRESS, GAME_CARD_ABI, provider);
+      const marketplace = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, provider);
 
-  async function loadCards(
-  walletAddress: string
-) {
-  const currentRequest =
-    ++loadRequestId.current;
-
-  try {
-    setLoadingCards(true);
-
-    const provider =
-      new ethers.JsonRpcProvider(
-        "https://ethereum-sepolia.publicnode.com",
-        11155111
-      );
-
-    const gameCard =
-      new ethers.Contract(
-        GAME_CARD_ADDRESS,
-        GAME_CARD_ABI,
-        provider
-      );
-
-    const marketplace =
-      new ethers.Contract(
-        MARKETPLACE_ADDRESS,
-        MARKETPLACE_ABI,
-        provider
-      );
-
-    const loadedCards: Card[] = [];
-
-    async function readWithRetry<T>(
-      readFunction: () => Promise<T>,
-      attempts = 3
-    ): Promise<T> {
-      let lastError: unknown;
-
-      for (
-        let attempt = 1;
-        attempt <= attempts;
-        attempt++
-      ) {
+      const cardPromises = CARD_IDS.map(async (tokenId) => {
         try {
-          return await readFunction();
-        } catch (error) {
-          lastError = error;
+          const [owner, cardData, listing] = await Promise.all([
+            gameCard.ownerOf(tokenId).catch(() => ethers.ZeroAddress),
+            gameCard.getCard(tokenId).catch(() => ({
+              name: getCardName(tokenId),
+              description: "A legendary warrior card forged in MythicForge.",
+              rarity: tokenId % 4 === 0 ? "Mythic" : tokenId % 3 === 0 ? "Legendary" : tokenId % 2 === 0 ? "Epic" : "Rare",
+              attack: 75 + (tokenId * 5),
+              defense: 70 + (tokenId * 4),
+            })),
+            marketplace.listings(tokenId).catch(() => ({ seller: ethers.ZeroAddress, price: 0n })),
+          ]);
 
-          if (attempt < attempts) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, 500)
-            );
-          }
+          const listed = listing.seller !== ethers.ZeroAddress;
+          const imageCID = IMAGE_CIDS[tokenId];
+          const image = imageCID ? ipfsUrl(imageCID, 0) : "";
+
+          return {
+            tokenId,
+            name: cardData.name,
+            description: cardData.description,
+            rarity: cardData.rarity,
+            attack: Number(cardData.attack),
+            defense: Number(cardData.defense),
+            image,
+            owner,
+            listed,
+            price: listed ? ethers.formatEther(listing.price) : "0",
+          } as Card;
+        } catch {
+          return null;
         }
+      });
+
+      const results = await Promise.all(cardPromises);
+      const validCards = results.filter((c): c is Card => c !== null);
+
+      if (currentRequest !== loadRequestId.current) return;
+      setCards(validCards);
+
+      if (walletAddress) {
+        setAccount(walletAddress);
       }
-
-      throw lastError;
-    }
-
-    for (const tokenId of CARD_IDS) {
-      try {
-        const owner =
-          await readWithRetry(() =>
-            gameCard.ownerOf(tokenId)
-          );
-
-        const cardData =
-          await readWithRetry(() =>
-            gameCard.getCard(tokenId)
-          );
-
-        const listing =
-          await readWithRetry(() =>
-            marketplace.listings(tokenId)
-          );
-
-        const listed =
-          listing.seller !==
-          ethers.ZeroAddress;
-
-        const imageCID =
-          IMAGE_CIDS[tokenId];
-
-        const image = imageCID
-          ? ipfsUrl(imageCID, 0)
-          : "";
-
-        loadedCards.push({
-          tokenId,
-          name: cardData.name,
-          description:
-            cardData.description,
-          rarity: cardData.rarity,
-          attack: Number(
-            cardData.attack
-          ),
-          defense: Number(
-            cardData.defense
-          ),
-          image,
-          owner,
-          listed,
-          price: listed
-            ? ethers.formatEther(
-                listing.price
-              )
-            : "0",
-        });
-
-        console.log(
-          `Token #${tokenId} loaded successfully.`
-        );
-      } catch (error) {
-        console.error(
-          `Token #${tokenId} could not be loaded after retries.`,
-          error
-        );
+    } catch (error) {
+      console.error("Failed to load cards:", error);
+    } finally {
+      if (currentRequest === loadRequestId.current) {
+        setLoadingCards(false);
       }
-    }
-
-    if (
-      currentRequest !==
-      loadRequestId.current
-    ) {
-      return;
-    }
-
-    setCards(loadedCards);
-
-    setAccount(
-      walletAddress
-    );
-
-    if (
-      loadedCards.length === 0
-    ) {
-      setStatus(
-        "Unable to load cards from the Sepolia blockchain."
-      );
-    }
-  } catch (error) {
-    console.error(
-      "Failed to load cards:",
-      error
-    );
-
-    if (
-      currentRequest ===
-      loadRequestId.current
-    ) {
-      setStatus(
-        "Failed to load cards from the blockchain."
-      );
-    }
-  } finally {
-    if (
-      currentRequest ===
-      loadRequestId.current
-    ) {
-      setLoadingCards(false);
     }
   }
-}
 
   /*
    * =====================================================
-   * BUY CARD
+   * MARKETPLACE ACTIONS (Buy, Sell, Unlist, Transfer)
    * =====================================================
    */
-
-  async function buyCard(
-    tokenId: number
-  ) {
+  async function buyCard(tokenId: number) {
     try {
       if (!window.ethereum) {
-        setStatus(
-          "Please install MetaMask."
-        );
+        addToast("Please install MetaMask to purchase cards.", "error");
         return;
       }
 
@@ -854,126 +491,54 @@ function App() {
         return;
       }
 
-      setLoading(true);
+      setActionLoading(true);
+      addToast(`Initiating purchase for ${getCardName(tokenId)}...`, "pending");
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const marketplace = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, signer);
 
-      const signer =
-        await provider.getSigner();
-
-      const marketplace =
-        new ethers.Contract(
-          MARKETPLACE_ADDRESS,
-          MARKETPLACE_ABI,
-          signer
-        );
-
-      const listing =
-        await marketplace.listings(
-          tokenId
-        );
-
-      if (
-        listing.seller ===
-        ethers.ZeroAddress
-      ) {
-        setStatus(
-          "This card is not currently listed."
-        );
+      const listing = await marketplace.listings(tokenId);
+      if (listing.seller === ethers.ZeroAddress) {
+        addToast("This card is not currently listed.", "error");
         return;
       }
 
-      const price =
-        ethers.formatEther(
-          listing.price
-        );
+      const price = ethers.formatEther(listing.price);
+      const balance = await provider.getBalance(account);
 
-      const balance =
-        await provider.getBalance(
-          account
-        );
-
-      if (
-        balance < listing.price
-      ) {
-        setStatus(
-          "Insufficient Sepolia ETH for this purchase."
-        );
+      if (balance < listing.price) {
+        addToast(`Insufficient ETH. Needed: ${price} ETH`, "error");
         return;
       }
 
-      setStatus(
-        `Buying ${getCardName(
-          tokenId
-        )} for ${price} ETH...`
-      );
-
-      const tx =
-        await marketplace.buyCard(
-          tokenId,
-          {
-            value:
-              listing.price,
-          }
-        );
-
-      setStatus(
-        "Transaction submitted. Waiting for confirmation..."
-      );
+      const tx = await marketplace.buyCard(tokenId, { value: listing.price });
+      addToast("Purchase transaction submitted to Sepolia network...", "pending", tx.hash);
 
       await tx.wait();
-
-      setStatus(
-        `${getCardName(
-          tokenId
-        )} purchased successfully!`
-      );
+      addToast(`Successfully bought ${getCardName(tokenId)}!`, "success", tx.hash);
 
       setSelectedCard(null);
-
-      await loadCards(
-        account
-      );
-
+      await loadCards(account);
       await loadActivity();
     } catch (error: any) {
       console.error(error);
-
-      if (
-        error?.code === 4001 ||
-        error?.code ===
-          "ACTION_REJECTED"
-      ) {
-        setStatus(
-          "Transaction rejected in MetaMask."
-        );
+      if (error?.code === 4001 || error?.code === "ACTION_REJECTED") {
+        addToast("Transaction cancelled in MetaMask.", "info");
       } else {
-        setStatus(
-          "Transaction failed. Check the browser console."
-        );
+        addToast(error?.reason || "Transaction failed. Please check your balance & network.", "error");
       }
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   }
 
-  /*
-   * =====================================================
-   * SELL CARD
-   * =====================================================
-   */
+  async function handleSellSubmit() {
+    if (!sellModalCard) return;
 
-  async function sellCard(
-    tokenId: number
-  ) {
     try {
       if (!window.ethereum) {
-        setStatus(
-          "Please install MetaMask."
-        );
+        addToast("Please install MetaMask.", "error");
         return;
       }
 
@@ -982,2327 +547,1148 @@ function App() {
         return;
       }
 
-      const priceInput =
-        window.prompt(
-          `Enter selling price for ${getCardName(
-            tokenId
-          )} in ETH:`
-        );
-
-      if (
-        priceInput === null ||
-        !priceInput.trim()
-      ) {
+      if (!sellPriceInput || !sellPriceInput.trim()) {
+        addToast("Please enter a valid ETH price.", "error");
         return;
       }
 
       let price: bigint;
-
       try {
-        price =
-          ethers.parseEther(
-            priceInput.trim()
-          );
+        price = ethers.parseEther(sellPriceInput.trim());
       } catch {
-        setStatus(
-          "Invalid ETH price."
-        );
+        addToast("Invalid ETH price entered.", "error");
         return;
       }
 
       if (price <= 0n) {
-        setStatus(
-          "Price must be greater than zero."
-        );
+        addToast("Price must be greater than 0 ETH.", "error");
         return;
       }
 
-      setLoading(true);
+      setActionLoading(true);
+      addToast(`Step 1/2: Requesting approval to list ${sellModalCard.name}...`, "pending");
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
 
-      const signer =
-        await provider.getSigner();
+      const gameCard = new ethers.Contract(GAME_CARD_ADDRESS, GAME_CARD_ABI, signer);
+      const marketplace = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, signer);
 
-      const gameCard =
-        new ethers.Contract(
-          GAME_CARD_ADDRESS,
-          GAME_CARD_ABI,
-          signer
-        );
-
-      const marketplace =
-        new ethers.Contract(
-          MARKETPLACE_ADDRESS,
-          MARKETPLACE_ABI,
-          signer
-        );
-
-      setStatus(
-        "Approving marketplace..."
-      );
-
-      const approval =
-        await gameCard.approve(
-          MARKETPLACE_ADDRESS,
-          tokenId
-        );
-
+      const approval = await gameCard.approve(MARKETPLACE_ADDRESS, sellModalCard.tokenId);
       await approval.wait();
 
-      setStatus(
-        "Listing card..."
-      );
-
-      const tx =
-        await marketplace.listCard(
-          tokenId,
-          price
-        );
-
+      addToast(`Step 2/2: Confirming listing for ${sellPriceInput} ETH...`, "pending");
+      const tx = await marketplace.listCard(sellModalCard.tokenId, price);
       await tx.wait();
 
-      setStatus(
-        `${getCardName(
-          tokenId
-        )} listed successfully!`
-      );
+      addToast(`${sellModalCard.name} listed on Marketplace for ${sellPriceInput} ETH!`, "success", tx.hash);
 
+      setSellModalCard(null);
+      setSellPriceInput("");
       setSelectedCard(null);
 
-      await loadCards(
-        account
-      );
-
+      await loadCards(account);
       await loadActivity();
     } catch (error: any) {
       console.error(error);
-
-      if (
-        error?.code === 4001 ||
-        error?.code ===
-          "ACTION_REJECTED"
-      ) {
-        setStatus(
-          "Transaction rejected."
-        );
+      if (error?.code === 4001 || error?.code === "ACTION_REJECTED") {
+        addToast("Listing transaction rejected.", "info");
       } else {
-        setStatus(
-          "Listing failed."
-        );
+        addToast(error?.reason || "Failed to list card.", "error");
       }
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   }
 
-  /*
-   * =====================================================
-   * UNLIST CARD
-   * =====================================================
-   */
-
-  async function unlistCard(
-    tokenId: number
-  ) {
+  async function unlistCard(tokenId: number) {
     try {
-      if (!window.ethereum) {
-        return;
-      }
+      if (!window.ethereum) return;
 
-      setLoading(true);
+      setActionLoading(true);
+      addToast("Cancelling listing on Marketplace...", "pending");
 
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const marketplace = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, signer);
 
-      const signer =
-        await provider.getSigner();
-
-      const marketplace =
-        new ethers.Contract(
-          MARKETPLACE_ADDRESS,
-          MARKETPLACE_ABI,
-          signer
-        );
-
-      setStatus(
-        "Cancelling listing..."
-      );
-
-      const tx =
-        await marketplace.unlistCard(
-          tokenId
-        );
-
+      const tx = await marketplace.unlistCard(tokenId);
       await tx.wait();
 
-      setStatus(
-        "Listing cancelled."
-      );
-
+      addToast("Listing cancelled successfully!", "success", tx.hash);
       setSelectedCard(null);
 
-      await loadCards(
-        account
-      );
-
+      await loadCards(account);
       await loadActivity();
     } catch (error) {
       console.error(error);
-
-      setStatus(
-        "Failed to cancel listing."
-      );
+      addToast("Failed to cancel listing.", "error");
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   }
 
-  /*
-   * =====================================================
-   * TRANSFER CARD
-   * =====================================================
-   */
+  async function handleTransferSubmit() {
+    if (!transferModalCard) return;
 
-  async function transferCard(
-    tokenId: number
-  ) {
     try {
       if (!window.ethereum) {
-        setStatus(
-          "Please install MetaMask."
-        );
+        addToast("Please install MetaMask.", "error");
         return;
       }
 
       if (!account) {
-        setStatus(
-          "Connect your wallet first."
-        );
+        addToast("Connect your wallet first.", "error");
         return;
       }
 
-      const recipient =
-        recipientAddress.trim();
-
-      if (!recipient) {
-        setStatus(
-          "Enter a recipient wallet address."
-        );
+      const recipient = recipientAddress.trim();
+      if (!recipient || !ethers.isAddress(recipient)) {
+        addToast("Please enter a valid Ethereum address.", "error");
         return;
       }
 
-      if (
-        !ethers.isAddress(
-          recipient
-        )
-      ) {
-        setStatus(
-          "Invalid wallet address."
-        );
+      if (recipient.toLowerCase() === account.toLowerCase()) {
+        addToast("You cannot transfer a card to yourself.", "error");
         return;
       }
 
-      if (
-        recipient.toLowerCase() ===
-        account.toLowerCase()
-      ) {
-        setStatus(
-          "You cannot transfer to yourself."
-        );
-        return;
-      }
+      setActionLoading(true);
+      addToast(`Transferring ${transferModalCard.name} to ${shortenAddress(recipient)}...`, "pending");
 
-      const card =
-        cards.find(
-          (item) =>
-            item.tokenId ===
-            tokenId
-        );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const gameCard = new ethers.Contract(GAME_CARD_ADDRESS, GAME_CARD_ABI, signer);
 
-      if (!card) {
-        setStatus(
-          "Card not found."
-        );
-        return;
-      }
-
-      if (
-        card.owner.toLowerCase() !==
-        account.toLowerCase()
-      ) {
-        setStatus(
-          "Only the owner can transfer this card."
-        );
-        return;
-      }
-
-      if (card.listed) {
-        setStatus(
-          "Cancel the marketplace listing before transferring."
-        );
-        return;
-      }
-
-      setLoading(true);
-
-      const provider =
-        new ethers.BrowserProvider(
-          window.ethereum
-        );
-
-      const signer =
-        await provider.getSigner();
-
-      const gameCard =
-        new ethers.Contract(
-          GAME_CARD_ADDRESS,
-          GAME_CARD_ABI,
-          signer
-        );
-
-      setStatus(
-        `Transferring ${card.name}...`
-      );
-
-      const tx =
-        await gameCard.transferFrom(
-          account,
-          recipient,
-          tokenId
-        );
-
-      setStatus(
-        "Transfer submitted. Waiting for confirmation..."
-      );
-
+      const tx = await gameCard.transferFrom(account, recipient, transferModalCard.tokenId);
       await tx.wait();
 
-      setStatus(
-        `${card.name} transferred to ${shortenAddress(
-          recipient
-        )}!`
-      );
+      addToast(`${transferModalCard.name} transferred to ${shortenAddress(recipient)}!`, "success", tx.hash);
 
-      setTransferCardId(null);
+      setTransferModalCard(null);
       setRecipientAddress("");
       setSelectedCard(null);
 
-      await loadCards(
-        account
-      );
-
+      await loadCards(account);
       await loadActivity();
     } catch (error: any) {
       console.error(error);
-
-      if (
-        error?.code === 4001 ||
-        error?.code ===
-          "ACTION_REJECTED"
-      ) {
-        setStatus(
-          "Transfer rejected."
-        );
+      if (error?.code === 4001 || error?.code === "ACTION_REJECTED") {
+        addToast("Transfer rejected.", "info");
       } else {
-        setStatus(
-          "Transfer failed."
-        );
+        addToast(error?.reason || "Transfer failed.", "error");
       }
     } finally {
-      setLoading(false);
+      setActionLoading(false);
+    }
+  }
+
+  function imageError(event: SyntheticEvent<HTMLImageElement>, tokenId: number) {
+    const image = event.currentTarget;
+    const current = Number(image.dataset.gateway || "0");
+    const next = current + 1;
+
+    if (next < IPFS_GATEWAYS.length) {
+      image.dataset.gateway = String(next);
+      image.src = ipfsUrl(IMAGE_CIDS[tokenId], next);
+    } else {
+      // High-res SVG Fallback Card Graphic
+      const name = getCardName(tokenId);
+      image.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231e1b4b"/><stop offset="100%" stop-color="%230f172a"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/><circle cx="200" cy="180" r="90" fill="none" stroke="%23818cf8" stroke-width="2" stroke-dasharray="8,8"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="%23c084fc" font-size="24" font-weight="900" font-family="sans-serif">${name}</text><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="%2338bdf8" font-size="14" font-weight="700" font-family="sans-serif">MythicForge %23${tokenId}</text></svg>`;
     }
   }
 
   /*
    * =====================================================
-   * IMAGE FALLBACK
+   * INITIALIZATION HOOKS
    * =====================================================
    */
-
-  function imageError(
-    event: SyntheticEvent<HTMLImageElement>,
-    tokenId: number
-  ) {
-    const image =
-      event.currentTarget;
-
-    const current =
-      Number(
-        image.dataset.gateway ||
-          "0"
-      );
-
-    const next =
-      current + 1;
-
-    if (
-      next <
-      IPFS_GATEWAYS.length
-    ) {
-      image.dataset.gateway =
-        String(next);
-
-      image.src = ipfsUrl(
-        IMAGE_CIDS[tokenId],
-        next
-      );
-    }
-  }
-
-  /*
-   * =====================================================
-   * INITIALIZE
-   * =====================================================
-   */
-
   useEffect(() => {
     async function initialize() {
-      if (!window.ethereum) {
-        return;
-      }
-
-      try {
-        const provider =
-          new ethers.BrowserProvider(
-            window.ethereum
-          );
-
-        const accounts =
-          await provider.send(
-            "eth_accounts",
-            []
-          );
-
-        await loadActivity();
-
-        if (accounts.length) {
-          setAccount(
-            accounts[0]
-          );
-
-          await loadCards(
-            accounts[0]
-          );
+      await loadActivity();
+      if (window.ethereum) {
+        try {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const accounts = await provider.send("eth_accounts", []);
+          if (accounts.length) {
+            setAccount(accounts[0]);
+            await loadCards(accounts[0]);
+          } else {
+            await loadCards();
+          }
+        } catch {
+          await loadCards();
         }
-      } catch (error) {
-        console.error(error);
+      } else {
+        await loadCards();
       }
     }
 
     initialize();
   }, []);
 
-  /*
-   * =====================================================
-   * ACCOUNT CHANGE
-   * =====================================================
-   */
-
   useEffect(() => {
-    if (!window.ethereum) {
-      return;
-    }
+    if (!window.ethereum) return;
 
-    const handleAccountsChanged =
-      (accounts: string[]) => {
-        loadRequestId.current++;
+    const handleAccountsChanged = (accounts: string[]) => {
+      loadRequestId.current++;
+      setCards([]);
+      setSelectedCard(null);
 
-        setCards([]);
-        setSelectedCard(null);
+      if (!accounts.length) {
+        setAccount("");
+        addToast("Wallet disconnected.", "info");
+        loadCards();
+        return;
+      }
 
-        if (!accounts.length) {
-          setAccount("");
+      setAccount(accounts[0]);
+      addToast(`Switched account to ${shortenAddress(accounts[0])}`, "info");
+      loadCards(accounts[0]);
+      loadActivity();
+    };
 
-          setStatus(
-            "Wallet disconnected."
-          );
-
-          return;
-        }
-
-        setAccount(
-          accounts[0]
-        );
-
-        setStatus(
-          "Loading new wallet collection..."
-        );
-
-        loadCards(
-          accounts[0]
-        );
-
-        loadActivity();
-      };
-
-    window.ethereum.on(
-      "accountsChanged",
-      handleAccountsChanged
-    );
-
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
     return () => {
-      window.ethereum.removeListener(
-        "accountsChanged",
-        handleAccountsChanged
-      );
+      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
     };
   }, []);
 
   /*
    * =====================================================
-   * FILTERS
+   * FILTERING & COMPUTED STATS
    * =====================================================
    */
-
-  function filterCards(
-    input: Card[]
-  ) {
-    let result = [
-      ...input,
-    ];
+  function filterCards(input: Card[]) {
+    let result = [...input];
 
     if (searchTerm.trim()) {
-      const search =
-        searchTerm
-          .toLowerCase()
-          .trim();
-
-      result =
-        result.filter(
-          (card) =>
-            card.name
-              .toLowerCase()
-              .includes(search) ||
-            card.description
-              .toLowerCase()
-              .includes(search)
-        );
-    }
-
-    if (
-      rarityFilter !==
-      "All"
-    ) {
-      result =
-        result.filter(
-          (card) =>
-            card.rarity ===
-            rarityFilter
-        );
-    }
-
-    if (
-      sortOption ===
-      "price-low"
-    ) {
-      result.sort(
-        (a, b) =>
-          Number(a.price) -
-          Number(b.price)
+      const search = searchTerm.toLowerCase().trim();
+      result = result.filter(
+        (card) =>
+          card.name.toLowerCase().includes(search) ||
+          card.description.toLowerCase().includes(search) ||
+          String(card.tokenId).includes(search)
       );
     }
 
-    if (
-      sortOption ===
-      "price-high"
-    ) {
-      result.sort(
-        (a, b) =>
-          Number(b.price) -
-          Number(a.price)
-      );
+    if (rarityFilter !== "All") {
+      result = result.filter((card) => card.rarity.toLowerCase() === rarityFilter.toLowerCase());
     }
 
-    if (
-      sortOption ===
-      "attack-high"
-    ) {
-      result.sort(
-        (a, b) =>
-          b.attack -
-          a.attack
-      );
-    }
-
-    if (
-      sortOption ===
-      "defense-high"
-    ) {
-      result.sort(
-        (a, b) =>
-          b.defense -
-          a.defense
-      );
+    if (sortOption === "price-low") {
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortOption === "price-high") {
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (sortOption === "attack-high") {
+      result.sort((a, b) => b.attack - a.attack);
+    } else if (sortOption === "defense-high") {
+      result.sort((a, b) => b.defense - a.defense);
     }
 
     return result;
   }
 
-  const ownedCards =
-    cards.filter(
-      (card) =>
-        account &&
-        card.owner.toLowerCase() ===
-          account.toLowerCase()
-    );
+  const ownedCards = cards.filter(
+    (card) => account && card.owner.toLowerCase() === account.toLowerCase()
+  );
+  const marketplaceCards = cards.filter((card) => card.listed);
 
-  const marketplaceCards =
-    cards.filter(
-      (card) =>
-        card.listed
-    );
+  const visibleMarketplaceCards = filterCards(marketplaceCards);
+  const visibleOwnedCards = filterCards(ownedCards);
+  const visibleAllCards = filterCards(cards);
 
-  const visibleOwnedCards =
-    filterCards(
-      ownedCards
-    );
+  const totalCardsCount = cards.length;
+  const userOwnedCount = ownedCards.length;
+  const totalMarketplaceCount = marketplaceCards.length;
+  const totalPowerRating = ownedCards.reduce((acc, card) => acc + card.attack + card.defense, 0);
 
-  const visibleMarketplaceCards =
-    filterCards(
-      marketplaceCards
-    );
-
-  const totalCards =
-    ownedCards.length;
-
-  const commonCount =
-    ownedCards.filter(
-      (card) =>
-        card.rarity ===
-        "Common"
-    ).length;
-
-  const rareCount =
-    ownedCards.filter(
-      (card) =>
-        card.rarity ===
-        "Rare"
-    ).length;
-
-  const epicCount =
-    ownedCards.filter(
-      (card) =>
-        card.rarity ===
-        "Epic"
-    ).length;
-
-  const legendaryCount =
-    ownedCards.filter(
-      (card) =>
-        card.rarity ===
-        "Legendary"
-    ).length;
-
-  const mythicCount =
-    ownedCards.filter(
-      (card) =>
-        card.rarity ===
-        "Mythic"
-    ).length;
-
-  const totalAttack =
-    ownedCards.reduce(
-      (sum, card) =>
-        sum + card.attack,
-      0
-    );
-
-  const totalDefense =
-    ownedCards.reduce(
-      (sum, card) =>
-        sum + card.defense,
-      0
-    );
-
-  const averageAttack =
-    totalCards > 0
-      ? (
-          totalAttack /
-          totalCards
-        ).toFixed(1)
-      : "0";
-
-  const averageDefense =
-    totalCards > 0
-      ? (
-          totalDefense /
-          totalCards
-        ).toFixed(1)
-      : "0";
-
-  const cardStyle:
-    CSSProperties = {
-    width: "340px",
-    overflow: "hidden",
+  const cardStyle: CSSProperties = {
     cursor: "pointer",
-  };
-
-  const gridStyle:
-    CSSProperties = {
-    display: "grid",
-    gridTemplateColumns:
-      "repeat(auto-fit, minmax(320px, 340px))",
-    justifyContent: "center",
-    gap: "28px",
-    width: "100%",
   };
 
   return (
     <div className="app">
+      {/* FLOATING TOAST NOTIFICATIONS */}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast-${toast.type}`}>
+            <div className="toast-content">
+              <span className="toast-icon">
+                {toast.type === "success"
+                  ? "✨"
+                  : toast.type === "error"
+                  ? "🚨"
+                  : toast.type === "pending"
+                  ? "⏳"
+                  : "ℹ️"}
+              </span>
+              <div>
+                <p className="toast-message">{toast.message}</p>
+                {toast.txHash && (
+                  <a
+                    href={`https://sepolia.etherscan.io/tx/${toast.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="toast-link"
+                  >
+                    View on Sepolia Etherscan ↗
+                  </a>
+                )}
+              </div>
+            </div>
+            <button className="toast-close" onClick={() => removeToast(toast.id)}>
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
 
-      <header>
-
-        <div>
-          <h1>
-            MythicForge
-          </h1>
-
-          <p>
-            Decentralized Game
-            Card Marketplace
-          </p>
+      {/* HEADER */}
+      <header className="header-bar">
+        <div className="brand-logo" onClick={() => setActiveTab("marketplace")}>
+          <div className="brand-icon">⚔️</div>
+          <div>
+            <h1>MythicForge</h1>
+            <p className="header-subtitle">Decentralized NFT Card Marketplace</p>
+          </div>
         </div>
 
-        <button
-          onClick={
-            connectWallet
-          }
-          disabled={loading}
-        >
-          {account
-            ? `${account.slice(
-                0,
-                6
-              )}...${account.slice(
-                -4
-              )}`
-            : "Connect MetaMask"}
-        </button>
+        <nav className="nav-tabs">
+          <button
+            className={`nav-tab ${activeTab === "marketplace" ? "active" : ""}`}
+            onClick={() => setActiveTab("marketplace")}
+          >
+            🛒 Marketplace <span className="badge">{totalMarketplaceCount}</span>
+          </button>
+          <button
+            className={`nav-tab ${activeTab === "collection" ? "active" : ""}`}
+            onClick={() => setActiveTab("collection")}
+          >
+            🃏 My Collection {account && <span className="badge">{userOwnedCount}</span>}
+          </button>
+          <button
+            className={`nav-tab ${activeTab === "all" ? "active" : ""}`}
+            onClick={() => setActiveTab("all")}
+          >
+            🎴 All Cards <span className="badge">{totalCardsCount}</span>
+          </button>
+          <button
+            className={`nav-tab ${activeTab === "activity" ? "active" : ""}`}
+            onClick={() => setActiveTab("activity")}
+          >
+            📜 Activity
+          </button>
+          <button
+            className={`nav-tab ${activeTab === "about" ? "active" : ""}`}
+            onClick={() => setActiveTab("about")}
+          >
+            ℹ️ Contracts
+          </button>
+        </nav>
 
+        <div className="header-actions">
+          <div className="network-pill">
+            <span className="dot"></span> Sepolia Testnet
+          </div>
+          {account ? (
+            <div className="wallet-connected-box">
+              <span className="wallet-address">{shortenAddress(account)}</span>
+              <button className="disconnect-btn" onClick={disconnectWallet} title="Disconnect Wallet">
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <button className="connect-btn" onClick={connectWallet} disabled={actionLoading}>
+              Connect MetaMask
+            </button>
+          )}
+        </div>
       </header>
 
+      {/* HERO BANNER */}
       <section className="hero">
-
-        <h2>
-          MythicForge
-        </h2>
-
-        <p>
-          Collect, trade, and
-          own blockchain game
-          cards.
-        </p>
-
-        <p className="network">
-          Ethereum Sepolia
-          Testnet
-        </p>
-
-      </section>
-
-      {status && (
-        <div className="status">
-          {status}
-        </div>
-      )}
-
-      {/* MARKETPLACE */}
-
-      <section className="card-section">
-
-        <div
-          style={{
-            width: "100%",
-            maxWidth:
-              "1100px",
-          }}
-        >
-
-          <div className="section-title">
-
-            <h2>
-              Marketplace
-            </h2>
-
-            <p>
-              Game cards
-              available for
-              purchase
-            </p>
-
-          </div>
-
-          <div
-            className="filter-bar"
-            style={{
-              display:
-                "flex",
-              justifyContent:
-                "center",
-              gap: "10px",
-              flexWrap:
-                "wrap",
-              marginBottom:
-                "30px",
-            }}
-          >
-
-            <input
-              className="search-input"
-              type="text"
-              placeholder="🔎 Search cards..."
-              value={
-                searchTerm
-              }
-              onChange={(event) =>
-                setSearchTerm(
-                  event.target.value
-                )
-              }
-            />
-
-            <select
-              value={
-                rarityFilter
-              }
-              onChange={(event) =>
-                setRarityFilter(
-                  event.target.value
-                )
-              }
-            >
-              <option value="All">
-                All Rarities
-              </option>
-
-              <option value="Common">
-                Common
-              </option>
-
-              <option value="Rare">
-                Rare
-              </option>
-
-              <option value="Epic">
-                Epic
-              </option>
-
-              <option value="Legendary">
-                Legendary
-              </option>
-
-              <option value="Mythic">
-                Mythic
-              </option>
-            </select>
-
-            <select
-              value={
-                sortOption
-              }
-              onChange={(event) =>
-                setSortOption(
-                  event.target.value
-                )
-              }
-            >
-              <option value="default">
-                Sort By
-              </option>
-
-              <option value="price-low">
-                Price: Low → High
-              </option>
-
-              <option value="price-high">
-                Price: High → Low
-              </option>
-
-              <option value="attack-high">
-                Attack: High → Low
-              </option>
-
-              <option value="defense-high">
-                Defense: High → Low
-              </option>
-            </select>
-
-            {(
-              searchTerm ||
-              rarityFilter !==
-                "All" ||
-              sortOption !==
-                "default"
-            ) && (
-              <button
-                onClick={() => {
-                  setSearchTerm(
-                    ""
-                  );
-
-                  setRarityFilter(
-                    "All"
-                  );
-
-                  setSortOption(
-                    "default"
-                  );
-                }}
-              >
-                Reset
-              </button>
-            )}
-
-          </div>
-
-          {loadingCards ? (
-            <div className="status">
-              Loading cards...
-            </div>
-          ) : (
-            <div
-              style={
-                gridStyle
-              }
-            >
-
-              {visibleMarketplaceCards.map(
-                (card) => (
-                  <div
-                    key={
-                      card.tokenId
-                    }
-                    className={`game-card ${rarityClass(
-                      card.rarity
-                    )}`}
-                    style={
-                      cardStyle
-                    }
-                    onClick={() =>
-                      setSelectedCard(
-                        card
-                      )
-                    }
-                  >
-
-                    <div
-                      style={{
-                        height:
-                          "260px",
-                        overflow:
-                          "hidden",
-                        position:
-                          "relative",
-                      }}
-                    >
-
-                      <img
-                        src={
-                          card.image
-                        }
-                        alt={
-                          card.name
-                        }
-                        data-gateway="0"
-                        onError={(
-                          event
-                        ) =>
-                          imageError(
-                            event,
-                            card.tokenId
-                          )
-                        }
-                        style={{
-                          width:
-                            "100%",
-                          height:
-                            "100%",
-                          objectFit:
-                            "cover",
-                          display:
-                            "block",
-                        }}
-                      />
-
-                      <span className="token-id">
-                        #
-                        {
-                          card.tokenId
-                        }
-                      </span>
-
-                    </div>
-
-                    <div
-                      style={{
-                        padding:
-                          "20px",
-                      }}
-                    >
-
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "center",
-                        }}
-                      >
-
-                        <h2>
-                          {
-                            card.name
-                          }
-                        </h2>
-
-                        <span
-                          className={`rarity ${rarityClass(
-                            card.rarity
-                          )}`}
-                        >
-                          {
-                            card.rarity
-                          }
-                        </span>
-
-                      </div>
-
-                      <p>
-                        {
-                          card.description
-                        }
-                      </p>
-
-                      <div className="stats">
-
-                        <span>
-                          Attack:{" "}
-                          {
-                            card.attack
-                          }
-                        </span>
-
-                        <span>
-                          Defense:{" "}
-                          {
-                            card.defense
-                          }
-                        </span>
-
-                      </div>
-
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "center",
-                          marginTop:
-                            "20px",
-                        }}
-                      >
-
-                        <strong>
-                          {
-                            card.price
-                          }{" "}
-                          ETH
-                        </strong>
-
-                        <button
-                          className="buy-button"
-                          onClick={(
-                            event
-                          ) => {
-                            event.stopPropagation();
-
-                            buyCard(
-                              card.tokenId
-                            );
-                          }}
-                          disabled={
-                            loading
-                          }
-                        >
-                          {loading
-                            ? "Processing..."
-                            : "Buy"}
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-                )
-              )}
-
-            </div>
-          )}
-
-          {!loadingCards &&
-            visibleMarketplaceCards.length ===
-              0 && (
-              <div className="status">
-                No cards are
-                currently listed
-                on the
-                marketplace.
-              </div>
-            )}
-
-        </div>
-
-      </section>
-
-      {/* MY COLLECTION */}
-
-      <section
-        className="card-section"
-        style={{
-          paddingTop:
-            "70px",
-        }}
-      >
-
-        <div
-          style={{
-            width: "100%",
-            maxWidth:
-              "1100px",
-          }}
-        >
-
-          <div className="section-title">
-
-            <h2>
-              My Collection
-            </h2>
-
-            <p>
-              Your blockchain
-              game cards
-            </p>
-
-          </div>
-
-          {account && (
-            <div
-              style={{
-                margin:
-                  "25px auto 40px",
-                padding:
-                  "25px",
-                background:
-                  "#171720",
-                border:
-                  "1px solid #30303d",
-                borderRadius:
-                  "18px",
-                maxWidth:
-                  "1000px",
+        <div className="hero-badge">⚡ Next-Gen Web3 Gaming NFT Marketplace</div>
+        <h2>Forge Your Mythic Card Deck</h2>
+        <p>Collect, trade, and battle with verifiable ERC-721 NFT cards on Ethereum Sepolia.</p>
+
+        {/* HERO QUICK RARITY CHIPS */}
+        <div className="hero-rarity-chips">
+          {["All", "Common", "Rare", "Epic", "Legendary", "Mythic"].map((rarity) => (
+            <button
+              key={rarity}
+              className={`chip chip-${rarity.toLowerCase()} ${rarityFilter === rarity ? "active-chip" : ""}`}
+              onClick={() => {
+                setRarityFilter(rarity);
+                if (activeTab !== "marketplace" && activeTab !== "collection" && activeTab !== "all") {
+                  setActiveTab("marketplace");
+                }
               }}
             >
-
-              <h3
-                style={{
-                  textAlign:
-                    "center",
-                  marginTop:
-                    0,
-                  marginBottom:
-                    "25px",
-                }}
-              >
-                📊 Collection
-                Statistics
-              </h3>
-
-              <div
-                style={{
-                  display:
-                    "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(140px, 1fr))",
-                  gap:
-                    "14px",
-                }}
-              >
-
-                <div className="collection-stat">
-
-                  <span>
-                    🃏
-                  </span>
-
-                  <strong>
-                    {
-                      totalCards
-                    }
-                  </strong>
-
-                  <small>
-                    Cards Owned
-                  </small>
-
-                </div>
-
-                <div className="collection-stat">
-
-                  <span>
-                    ⚔️
-                  </span>
-
-                  <strong>
-                    {
-                      totalAttack
-                    }
-                  </strong>
-
-                  <small>
-                    Total Attack
-                  </small>
-
-                </div>
-
-                <div className="collection-stat">
-
-                  <span>
-                    🛡️
-                  </span>
-
-                  <strong>
-                    {
-                      totalDefense
-                    }
-                  </strong>
-
-                  <small>
-                    Total Defense
-                  </small>
-
-                </div>
-
-                <div className="collection-stat">
-
-                  <span>
-                    ⚔️
-                  </span>
-
-                  <strong>
-                    {
-                      averageAttack
-                    }
-                  </strong>
-
-                  <small>
-                    Avg Attack
-                  </small>
-
-                </div>
-
-                <div className="collection-stat">
-
-                  <span>
-                    🛡️
-                  </span>
-
-                  <strong>
-                    {
-                      averageDefense
-                    }
-                  </strong>
-
-                  <small>
-                    Avg Defense
-                  </small>
-
-                </div>
-
-              </div>
-
-              <div
-                style={{
-                  marginTop:
-                    "25px",
-                  paddingTop:
-                    "20px",
-                  borderTop:
-                    "1px solid #30303d",
-                }}
-              >
-
-                <h4
-                  style={{
-                    textAlign:
-                      "center",
-                    marginBottom:
-                      "15px",
-                  }}
-                >
-                  Rarity
-                  Breakdown
-                </h4>
-
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    justifyContent:
-                      "center",
-                    gap:
-                      "10px",
-                    flexWrap:
-                      "wrap",
-                  }}
-                >
-
-                  <div className="rarity-count common">
-                    Common:{" "}
-                    {
-                      commonCount
-                    }
-                  </div>
-
-                  <div className="rarity-count rare">
-                    Rare:{" "}
-                    {
-                      rareCount
-                    }
-                  </div>
-
-                  <div className="rarity-count epic">
-                    Epic:{" "}
-                    {
-                      epicCount
-                    }
-                  </div>
-
-                  <div className="rarity-count legendary">
-                    Legendary:{" "}
-                    {
-                      legendaryCount
-                    }
-                  </div>
-
-                  <div className="rarity-count mythic">
-                    Mythic:{" "}
-                    {
-                      mythicCount
-                    }
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-          {!account ? (
-            <div className="status">
-              Connect MetaMask
-              to view your
-              collection.
-            </div>
-          ) : visibleOwnedCards.length ===
-            0 ? (
-            <div className="status">
-              No cards match
-              your current
-              filters.
-            </div>
-          ) : (
-            <div
-              style={
-                gridStyle
-              }
-            >
-
-              {visibleOwnedCards.map(
-                (card) => (
-                  <div
-                    key={
-                      card.tokenId
-                    }
-                    className={`game-card owned-card ${rarityClass(
-                      card.rarity
-                    )}`}
-                    style={
-                      cardStyle
-                    }
-                    onClick={() =>
-                      setSelectedCard(
-                        card
-                      )
-                    }
-                  >
-
-                    <div
-                      style={{
-                        height:
-                          "260px",
-                        overflow:
-                          "hidden",
-                        position:
-                          "relative",
-                      }}
-                    >
-
-                      <img
-                        src={
-                          card.image
-                        }
-                        alt={
-                          card.name
-                        }
-                        data-gateway="0"
-                        onError={(
-                          event
-                        ) =>
-                          imageError(
-                            event,
-                            card.tokenId
-                          )
-                        }
-                        style={{
-                          width:
-                            "100%",
-                          height:
-                            "100%",
-                          objectFit:
-                            "cover",
-                          display:
-                            "block",
-                        }}
-                      />
-
-                      <span className="token-id">
-                        #
-                        {
-                          card.tokenId
-                        }
-                      </span>
-
-                    </div>
-
-                    <div
-                      style={{
-                        padding:
-                          "20px",
-                      }}
-                    >
-
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "center",
-                        }}
-                      >
-
-                        <h2>
-                          {
-                            card.name
-                          }
-                        </h2>
-
-                        <span
-                          className={`rarity ${rarityClass(
-                            card.rarity
-                          )}`}
-                        >
-                          {
-                            card.rarity
-                          }
-                        </span>
-
-                      </div>
-
-                      <p>
-                        {
-                          card.description
-                        }
-                      </p>
-
-                      <div className="stats">
-
-                        <span>
-                          Attack:{" "}
-                          {
-                            card.attack
-                          }
-                        </span>
-
-                        <span>
-                          Defense:{" "}
-                          {
-                            card.defense
-                          }
-                        </span>
-
-                      </div>
-
-                      <div
-                        style={{
-                          marginTop:
-                            "20px",
-                        }}
-                      >
-
-                        <div
-                          style={{
-                            display:
-                              "flex",
-                            gap:
-                              "8px",
-                          }}
-                        >
-
-                          <div
-                            style={{
-                              flex:
-                                1,
-                              padding:
-                                "12px",
-                              background:
-                                "#242431",
-                              borderRadius:
-                                "8px",
-                              textAlign:
-                                "center",
-                              fontSize:
-                                "12px",
-                              fontWeight:
-                                "bold",
-                            }}
-                          >
-                            OWNED BY YOU
-                          </div>
-
-                          <button
-                            className="sell-button"
-                            style={{
-                              flex:
-                                1,
-                            }}
-                            onClick={(
-                              event
-                            ) => {
-                              event.stopPropagation();
-
-                              sellCard(
-                                card.tokenId
-                              );
-                            }}
-                            disabled={
-                              loading
-                            }
-                          >
-                            {loading
-                              ? "..."
-                              : "Sell"}
-                          </button>
-
-                        </div>
-
-                        <button
-                          className="transfer-button"
-                          style={{
-                            width:
-                              "100%",
-                            marginTop:
-                              "8px",
-                            padding:
-                              "12px",
-                            border:
-                              "none",
-                            borderRadius:
-                              "8px",
-                            background:
-                              "#3b82f6",
-                            color:
-                              "white",
-                            fontWeight:
-                              "bold",
-                            cursor:
-                              "pointer",
-                          }}
-                          onClick={(
-                            event
-                          ) => {
-                            event.stopPropagation();
-
-                            setTransferCardId(
-                              card.tokenId
-                            );
-
-                            setRecipientAddress(
-                              ""
-                            );
-                          }}
-                          disabled={
-                            loading ||
-                            card.listed
-                          }
-                        >
-                          {card.listed
-                            ? "Cancel Listing First"
-                            : "Transfer"}
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-                )
-              )}
-
-            </div>
-          )}
-
-        </div>
-
-      </section>
-
-      {/* RECENT ACTIVITY */}
-
-      <section
-        className="card-section"
-        style={{
-          paddingTop:
-            "70px",
-        }}
-      >
-
-        <div
-          style={{
-            width: "100%",
-            maxWidth:
-              "900px",
-          }}
-        >
-
-          <div className="section-title">
-
-            <h2>
-              Recent Activity
-            </h2>
-
-            <p>
-              Marketplace activity
-            </p>
-
-          </div>
-
-          {activities.length ===
-          0 ? (
-            <div className="status">
-              No marketplace
-              activity yet.
-            </div>
-          ) : (
-            <div>
-
-              {activities
-                .slice(0, 10)
-                .map(
-                  (
-                    activity,
-                    index
-                  ) => (
-                    <div
-                      key={
-                        activity.transactionHash +
-                        index
-                      }
-                      style={{
-                        display:
-                          "flex",
-                        justifyContent:
-                          "space-between",
-                        alignItems:
-                          "center",
-                        gap:
-                          "20px",
-                        padding:
-                          "18px",
-                        marginBottom:
-                          "10px",
-                        background:
-                          "#171720",
-                        border:
-                          "1px solid #30303d",
-                        borderRadius:
-                          "12px",
-                      }}
-                    >
-
-                      <div>
-
-                        <strong>
-                          {activity.type ===
-                          "LISTED"
-                            ? "🏷️ Listed"
-                            : activity.type ===
-                              "SOLD"
-                            ? "🛒 Sold"
-                            : "↩️ Unlisted"}
-                        </strong>
-
-                        <p>
-                          {
-                            activity.cardName
-                          }{" "}
-                          #
-                          {
-                            activity.tokenId
-                          }
-                        </p>
-
-                        {activity.type !==
-                          "UNLISTED" && (
-                          <p>
-                            Price:{" "}
-                            {
-                              activity.price
-                            }{" "}
-                            ETH
-                          </p>
-                        )}
-
-                      </div>
-
-                      <a
-                        href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        View
-                        Transaction ↗
-                      </a>
-
-                    </div>
-                  )
-                )}
-
-            </div>
-          )}
-
-        </div>
-
-      </section>
-
-      {/* ABOUT */}
-
-      <section
-        className="info-section"
-        style={{
-          maxWidth:
-            "900px",
-          margin:
-            "60px auto",
-        }}
-      >
-
-        <h2>
-          About MythicForge
-        </h2>
-
-        <p>
-          MythicForge is a
-          decentralized
-          game-card
-          marketplace powered
-          by Ethereum Sepolia.
-          Each game card is an
-          ERC-721 NFT with
-          unique attributes
-          and IPFS-based
-          metadata.
-        </p>
-
-        <p>
-          GameCard Contract:
-        </p>
-
-        <code>
-          {
-            GAME_CARD_ADDRESS
-          }
-        </code>
-
-        <p>
-          Marketplace Contract:
-        </p>
-
-        <code>
-          {
-            MARKETPLACE_ADDRESS
-          }
-        </code>
-
-      </section>
-
-      {/* CARD DETAILS MODAL */}
-
-      {selectedCard && (
-        <div
-          className="modal-overlay"
-          onClick={() =>
-            setSelectedCard(
-              null
-            )
-          }
-        >
-
-          <div
-            className="card-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-
-            <button
-              className="modal-close"
-              onClick={() =>
-                setSelectedCard(
-                  null
-                )
-              }
-            >
-              ×
+              {rarity}
             </button>
+          ))}
+        </div>
+        
+        <div className="stats-banner">
+          <div className="stat-card">
+            <span className="stat-label">Total Cards Minted</span>
+            <strong className="stat-value">{totalCardsCount}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Listed on Market</span>
+            <strong className="stat-value">{totalMarketplaceCount}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Your Owned Cards</span>
+            <strong className="stat-value">{account ? userOwnedCount : "0"}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Your Deck Power</span>
+            <strong className="stat-value">{account ? totalPowerRating : "0"}</strong>
+          </div>
+        </div>
+      </section>
 
-            <div className="modal-image-container">
-
-              <img
-                src={
-                  selectedCard.image
-                }
-                alt={
-                  selectedCard.name
-                }
-                data-gateway="0"
-                onError={(event) =>
-                  imageError(
-                    event,
-                    selectedCard.tokenId
-                  )
-                }
+      {/* MAIN CONTENT AREA */}
+      <main className="main-content">
+        {/* SEARCH AND FILTERS BAR */}
+        {(activeTab === "marketplace" || activeTab === "collection" || activeTab === "all") && (
+          <div className="filter-bar">
+            <div className="search-box">
+              <span className="search-icon">🔍</span>
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search card by name, description, or #ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-
+              {searchTerm && (
+                <button className="clear-search" onClick={() => setSearchTerm("")}>
+                  ×
+                </button>
+              )}
             </div>
 
-            <div className="modal-content">
+            <div className="filter-group">
+              <select value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)}>
+                <option value="All">All Rarities</option>
+                <option value="Common">Common</option>
+                <option value="Rare">Rare</option>
+                <option value="Epic">Epic</option>
+                <option value="Legendary">Legendary</option>
+                <option value="Mythic">Mythic</option>
+              </select>
 
-              <div
-                style={{
-                  display:
-                    "flex",
-                  justifyContent:
-                    "space-between",
-                  alignItems:
-                    "center",
-                }}
-              >
+              <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+                <option value="default">Sort By Default</option>
+                <option value="price-low">Price: Low → High</option>
+                <option value="price-high">Price: High → Low</option>
+                <option value="attack-high">Attack: High → Low</option>
+                <option value="defense-high">Defense: High → Low</option>
+              </select>
 
-                <div>
-
-                  <h2>
-                    {
-                      selectedCard.name
-                    }
-                  </h2>
-
-                  <span>
-                    Token #
-                    {
-                      selectedCard.tokenId
-                    }
-                  </span>
-
-                </div>
-
-                <span
-                  className={`rarity ${rarityClass(
-                    selectedCard.rarity
-                  )}`}
+              {(searchTerm || rarityFilter !== "All" || sortOption !== "default") && (
+                <button
+                  className="reset-btn"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setRarityFilter("All");
+                    setSortOption("default");
+                  }}
                 >
-                  {
-                    selectedCard.rarity
-                  }
-                </span>
-
-              </div>
-
-              <p>
-                {
-                  selectedCard.description
-                }
-              </p>
-
-              <div className="modal-stats">
-
-                <div>
-
-                  <span>
-                    Attack
-                  </span>
-
-                  <strong>
-                    {
-                      selectedCard.attack
-                    }
-                  </strong>
-
-                </div>
-
-                <div>
-
-                  <span>
-                    Defense
-                  </span>
-
-                  <strong>
-                    {
-                      selectedCard.defense
-                    }
-                  </strong>
-
-                </div>
-
-              </div>
-
-              <div className="modal-owner">
-
-                <span>
-                  Current Owner
-                </span>
-
-                <code>
-                  {
-                    selectedCard.owner
-                  }
-                </code>
-
-              </div>
-
-              <div className="modal-status">
-
-                <span>
-                  Status
-                </span>
-
-                <strong>
-                  {selectedCard.listed
-                    ? "Listed on Marketplace"
-                    : "Not Listed"}
-                </strong>
-
-              </div>
-
-              {selectedCard.listed && (
-                <div className="modal-price">
-
-                  <span>
-                    Current Price
-                  </span>
-
-                  <strong>
-                    {
-                      selectedCard.price
-                    }{" "}
-                    ETH
-                  </strong>
-
-                </div>
+                  Reset Filters
+                </button>
               )}
+            </div>
+          </div>
+        )}
 
-              <div className="card-history">
-
-                <div className="card-history-header">
-
-                  <h3>
-                    Transaction
-                    History
-                  </h3>
-
-                  <span>
-                    {
-                      getCardHistory(
-                        selectedCard.tokenId
-                      ).length
-                    }{" "}
-                    events
-                  </span>
-
+        {/* LOADING INDICATOR */}
+        {loadingCards ? (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Fetching card data from Sepolia blockchain & IPFS...</p>
+          </div>
+        ) : (
+          <>
+            {/* TAB 1: MARKETPLACE */}
+            {activeTab === "marketplace" && (
+              <section className="tab-section">
+                <div className="section-title">
+                  <h2>Marketplace Listings</h2>
+                  <p>Discover and acquire rare game cards listed by other players.</p>
                 </div>
 
-                {getCardHistory(
-                  selectedCard.tokenId
-                ).length === 0 ? (
-                  <div className="history-empty">
-                    No marketplace
-                    transactions yet.
+                {visibleMarketplaceCards.length === 0 ? (
+                  <div className="empty-state">
+                    <span className="empty-icon">🏷️</span>
+                    <h3>No cards currently listed</h3>
+                    <p>Be the first to list a card for sale from your collection!</p>
                   </div>
                 ) : (
-                  <div className="history-list">
-
-                    {getCardHistory(
-                      selectedCard.tokenId
-                    ).map(
-                      (
-                        activity,
-                        index
-                      ) => (
+                  <div className="cards-grid">
+                    {visibleMarketplaceCards.map((card) => {
+                      const element = ELEMENT_INFO[card.tokenId] || { name: "Arcane", icon: "✨", bg: "rgba(255,255,255,0.1)" };
+                      return (
                         <div
-                          className="history-item"
-                          key={
-                            activity.transactionHash +
-                            index
-                          }
+                          key={card.tokenId}
+                          className={`game-card ${rarityClass(card.rarity)}`}
+                          style={cardStyle}
+                          onClick={() => setSelectedCard(card)}
                         >
-
-                          <div className="history-icon">
-
-                            {activity.type ===
-                            "LISTED"
-                              ? "🏷️"
-                              : activity.type ===
-                                "SOLD"
-                              ? "🛒"
-                              : "↩️"}
-
+                          <div className="card-image-wrapper">
+                            <img
+                              src={card.image}
+                              alt={card.name}
+                              data-gateway="0"
+                              onError={(e) => imageError(e, card.tokenId)}
+                              loading="lazy"
+                            />
+                            <span className="token-id-badge">#{card.tokenId}</span>
+                            <span className={`rarity-badge ${rarityClass(card.rarity)}`}>
+                              {card.rarity}
+                            </span>
+                            <span className="element-badge" style={{ background: element.bg }}>
+                              {element.icon} {element.name}
+                            </span>
                           </div>
 
-                          <div className="history-details">
+                          <div className="card-body">
+                            <h3 className="card-title">{card.name}</h3>
+                            <p className="card-desc">{card.description}</p>
 
-                            <strong>
-                              {activity.type ===
-                              "LISTED"
-                                ? "Listed"
-                                : activity.type ===
-                                  "SOLD"
-                                ? "Sold"
-                                : "Unlisted"}
-                            </strong>
+                            {/* BATTLE STATS PROGRESS BARS */}
+                            <div className="stats-progress-box">
+                              <div className="stat-bar-group">
+                                <div className="stat-bar-header">
+                                  <span>⚔️ ATK</span>
+                                  <strong>{card.attack}</strong>
+                                </div>
+                                <div className="progress-track">
+                                  <div className="progress-fill atk-fill" style={{ width: `${Math.min(100, card.attack)}%` }}></div>
+                                </div>
+                              </div>
 
-                            {activity.type !==
-                              "UNLISTED" && (
-                              <p>
-                                Price:{" "}
-                                {
-                                  activity.price
-                                }{" "}
-                                ETH
-                              </p>
-                            )}
+                              <div className="stat-bar-group">
+                                <div className="stat-bar-header">
+                                  <span>🛡️ DEF</span>
+                                  <strong>{card.defense}</strong>
+                                </div>
+                                <div className="progress-track">
+                                  <div className="progress-fill def-fill" style={{ width: `${Math.min(100, card.defense)}%` }}></div>
+                                </div>
+                              </div>
+                            </div>
 
-                            <p>
-                              Seller:{" "}
-                              {shortenAddress(
-                                activity.seller
+                            <div className="card-footer">
+                              <div className="price-tag">
+                                <small>Listing Price</small>
+                                <strong>{card.price} ETH</strong>
+                              </div>
+
+                              {account && card.owner.toLowerCase() === account.toLowerCase() ? (
+                                <button
+                                  className="action-btn cancel-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    unlistCard(card.tokenId);
+                                  }}
+                                  disabled={actionLoading}
+                                >
+                                  Cancel List
+                                </button>
+                              ) : (
+                                <button
+                                  className="action-btn buy-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    buyCard(card.tokenId);
+                                  }}
+                                  disabled={actionLoading}
+                                >
+                                  Buy Now
+                                </button>
                               )}
-                            </p>
-
-                            {activity.buyer && (
-                              <p>
-                                Buyer:{" "}
-                                {shortenAddress(
-                                  activity.buyer
-                                )}
-                              </p>
-                            )}
-
-                            <a
-                              href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              View
-                              transaction
-                              ↗
-                            </a>
-
+                            </div>
                           </div>
-
                         </div>
-                      )
-                    )}
-
+                      );
+                    })}
                   </div>
                 )}
+              </section>
+            )}
 
-              </div>
+            {/* TAB 2: MY COLLECTION */}
+            {activeTab === "collection" && (
+              <section className="tab-section">
+                <div className="section-title">
+                  <h2>My Collection</h2>
+                  <p>Manage your owned cards, inspect stats, list cards for sale or transfer.</p>
+                </div>
 
-              <div className="modal-actions">
-
-                {selectedCard.listed &&
-                  selectedCard.owner.toLowerCase() !==
-                    account.toLowerCase() && (
-                    <button
-                      className="modal-buy-button"
-                      onClick={() =>
-                        buyCard(
-                          selectedCard.tokenId
-                        )
-                      }
-                      disabled={
-                        loading
-                      }
-                    >
-                      {loading
-                        ? "Processing..."
-                        : `Buy for ${selectedCard.price} ETH`}
+                {!account ? (
+                  <div className="empty-state">
+                    <span className="empty-icon">🦊</span>
+                    <h3>Wallet Not Connected</h3>
+                    <p>Connect your MetaMask wallet to view your owned game cards.</p>
+                    <button className="connect-btn" onClick={connectWallet} style={{ marginTop: "15px" }}>
+                      Connect MetaMask
                     </button>
-                  )}
-
-                {selectedCard.owner.toLowerCase() ===
-                  account.toLowerCase() && (
-                  <>
-
-                    <div className="modal-owned">
-                      OWNED BY YOU
-                    </div>
-
-                    {selectedCard.listed ? (
-                      <button
-                        className="modal-cancel-button"
-                        onClick={() =>
-                          unlistCard(
-                            selectedCard.tokenId
-                          )
-                        }
-                        disabled={
-                          loading
-                        }
-                      >
-                        {loading
-                          ? "Processing..."
-                          : "Cancel Listing"}
-                      </button>
-                    ) : (
-                      <>
-
-                        <button
-                          className="modal-sell-button"
-                          onClick={() =>
-                            sellCard(
-                              selectedCard.tokenId
-                            )
-                          }
-                          disabled={
-                            loading
-                          }
+                  </div>
+                ) : visibleOwnedCards.length === 0 ? (
+                  <div className="empty-state">
+                    <span className="empty-icon">🃏</span>
+                    <h3>No Cards Owned</h3>
+                    <p>You don't own any cards matching the search criteria yet.</p>
+                  </div>
+                ) : (
+                  <div className="cards-grid">
+                    {visibleOwnedCards.map((card) => {
+                      const element = ELEMENT_INFO[card.tokenId] || { name: "Arcane", icon: "✨", bg: "rgba(255,255,255,0.1)" };
+                      return (
+                        <div
+                          key={card.tokenId}
+                          className={`game-card ${rarityClass(card.rarity)}`}
+                          style={cardStyle}
+                          onClick={() => setSelectedCard(card)}
                         >
-                          {loading
-                            ? "Processing..."
-                            : "Sell Card"}
-                        </button>
+                          <div className="card-image-wrapper">
+                            <img
+                              src={card.image}
+                              alt={card.name}
+                              data-gateway="0"
+                              onError={(e) => imageError(e, card.tokenId)}
+                              loading="lazy"
+                            />
+                            <span className="token-id-badge">#{card.tokenId}</span>
+                            <span className={`rarity-badge ${rarityClass(card.rarity)}`}>
+                              {card.rarity}
+                            </span>
+                            <span className="element-badge" style={{ background: element.bg }}>
+                              {element.icon} {element.name}
+                            </span>
+                            {card.listed && <span className="listed-tag">Listed ({card.price} ETH)</span>}
+                          </div>
 
-                        <button
-                          className="modal-transfer-button"
-                          onClick={() => {
-                            setSelectedCard(
-                              null
-                            );
+                          <div className="card-body">
+                            <h3 className="card-title">{card.name}</h3>
+                            <p className="card-desc">{card.description}</p>
 
-                            setTransferCardId(
-                              selectedCard.tokenId
-                            );
+                            <div className="stats-progress-box">
+                              <div className="stat-bar-group">
+                                <div className="stat-bar-header">
+                                  <span>⚔️ ATK</span>
+                                  <strong>{card.attack}</strong>
+                                </div>
+                                <div className="progress-track">
+                                  <div className="progress-fill atk-fill" style={{ width: `${Math.min(100, card.attack)}%` }}></div>
+                                </div>
+                              </div>
 
-                            setRecipientAddress(
-                              ""
-                            );
-                          }}
-                          disabled={
-                            loading
-                          }
-                        >
-                          Transfer Card
-                        </button>
+                              <div className="stat-bar-group">
+                                <div className="stat-bar-header">
+                                  <span>🛡️ DEF</span>
+                                  <strong>{card.defense}</strong>
+                                </div>
+                                <div className="progress-track">
+                                  <div className="progress-fill def-fill" style={{ width: `${Math.min(100, card.defense)}%` }}></div>
+                                </div>
+                              </div>
+                            </div>
 
-                      </>
-                    )}
-
-                  </>
+                            <div className="card-footer-buttons">
+                              {card.listed ? (
+                                <button
+                                  className="action-btn cancel-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    unlistCard(card.tokenId);
+                                  }}
+                                  disabled={actionLoading}
+                                >
+                                  Cancel Listing
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    className="action-btn sell-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSellModalCard(card);
+                                      setSellPriceInput("");
+                                    }}
+                                    disabled={actionLoading}
+                                  >
+                                    Sell Card
+                                  </button>
+                                  <button
+                                    className="action-btn transfer-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTransferModalCard(card);
+                                      setRecipientAddress("");
+                                    }}
+                                    disabled={actionLoading}
+                                  >
+                                    Transfer
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
+              </section>
+            )}
 
-              </div>
+            {/* TAB 3: ALL CARDS */}
+            {activeTab === "all" && (
+              <section className="tab-section">
+                <div className="section-title">
+                  <h2>All Game Cards</h2>
+                  <p>Complete directory of all minted cards in the MythicForge universe.</p>
+                </div>
 
-            </div>
+                <div className="cards-grid">
+                  {visibleAllCards.map((card) => {
+                    const element = ELEMENT_INFO[card.tokenId] || { name: "Arcane", icon: "✨", bg: "rgba(255,255,255,0.1)" };
+                    return (
+                      <div
+                        key={card.tokenId}
+                        className={`game-card ${rarityClass(card.rarity)}`}
+                        style={cardStyle}
+                        onClick={() => setSelectedCard(card)}
+                      >
+                        <div className="card-image-wrapper">
+                          <img
+                            src={card.image}
+                            alt={card.name}
+                            data-gateway="0"
+                            onError={(e) => imageError(e, card.tokenId)}
+                            loading="lazy"
+                          />
+                          <span className="token-id-badge">#{card.tokenId}</span>
+                          <span className={`rarity-badge ${rarityClass(card.rarity)}`}>
+                            {card.rarity}
+                          </span>
+                          <span className="element-badge" style={{ background: element.bg }}>
+                            {element.icon} {element.name}
+                          </span>
+                          {card.listed && <span className="listed-tag">{card.price} ETH</span>}
+                        </div>
 
-          </div>
+                        <div className="card-body">
+                          <h3 className="card-title">{card.name}</h3>
+                          <p className="card-desc">{card.description}</p>
 
-        </div>
-      )}
+                          <div className="stats-progress-box">
+                            <div className="stat-bar-group">
+                              <div className="stat-bar-header">
+                                <span>⚔️ ATK</span>
+                                <strong>{card.attack}</strong>
+                              </div>
+                              <div className="progress-track">
+                                <div className="progress-fill atk-fill" style={{ width: `${Math.min(100, card.attack)}%` }}></div>
+                              </div>
+                            </div>
 
-      {/* TRANSFER MODAL */}
+                            <div className="stat-bar-group">
+                              <div className="stat-bar-header">
+                                <span>🛡️ DEF</span>
+                                <strong>{card.defense}</strong>
+                              </div>
+                              <div className="progress-track">
+                                <div className="progress-fill def-fill" style={{ width: `${Math.min(100, card.defense)}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
 
-      {transferCardId !==
-        null && (
-        <div
-          className="modal-overlay"
-          onClick={() => {
-            if (!loading) {
-              setTransferCardId(
-                null
-              );
+                          <div className="card-owner-info">
+                            <small>Owner:</small>{" "}
+                            <span>
+                              {account && card.owner.toLowerCase() === account.toLowerCase()
+                                ? "You"
+                                : shortenAddress(card.owner)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
-              setRecipientAddress(
-                ""
-              );
-            }
-          }}
-        >
+            {/* TAB 4: RECENT ACTIVITY */}
+            {activeTab === "activity" && (
+              <section className="tab-section activity-section">
+                <div className="section-title">
+                  <h2>Marketplace Activity</h2>
+                  <p>Real-time transaction history indexed directly from Ethereum Sepolia.</p>
+                </div>
 
-          <div
-            className="transfer-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
+                {activities.length === 0 ? (
+                  <div className="empty-state">
+                    <span className="empty-icon">📜</span>
+                    <h3>No Activity Indexed</h3>
+                    <p>No listings or transactions have been recorded on this marketplace yet.</p>
+                  </div>
+                ) : (
+                  <div className="activity-list">
+                    {activities.map((activity, index) => (
+                      <div key={`${activity.transactionHash}-${index}`} className="activity-card">
+                        <div className="activity-left">
+                          <div className={`activity-badge badge-${activity.type.toLowerCase()}`}>
+                            {activity.type === "LISTED"
+                              ? "🏷️ LISTED"
+                              : activity.type === "SOLD"
+                              ? "🛒 SOLD"
+                              : "↩️ UNLISTED"}
+                          </div>
 
-            <button
-              className="modal-close"
-              onClick={() => {
-                if (!loading) {
-                  setTransferCardId(
-                    null
-                  );
+                          <div className="activity-details">
+                            <h4>
+                              {activity.cardName} <span className="token-id">#{activity.tokenId}</span>
+                            </h4>
+                            <p className="activity-addresses">
+                              Seller: <code>{shortenAddress(activity.seller)}</code>
+                              {activity.buyer && (
+                                <>
+                                  {" → "}Buyer: <code>{shortenAddress(activity.buyer)}</code>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        </div>
 
-                  setRecipientAddress(
-                    ""
-                  );
-                }
-              }}
-            >
+                        <div className="activity-right">
+                          {activity.type !== "UNLISTED" && (
+                            <div className="activity-price">{activity.price} ETH</div>
+                          )}
+                          <a
+                            href={`https://sepolia.etherscan.io/tx/${activity.transactionHash}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="tx-link-btn"
+                          >
+                            View Tx ↗
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* TAB 5: ABOUT & CONTRACTS */}
+            {activeTab === "about" && (
+              <section className="tab-section about-section">
+                <div className="section-title">
+                  <h2>Smart Contracts & Protocol</h2>
+                  <p>Verified on-chain infrastructure powering MythicForge on Sepolia.</p>
+                </div>
+
+                <div className="info-cards-grid">
+                  <div className="info-card">
+                    <h3>🃏 GameCard Contract (ERC-721)</h3>
+                    <p>Handles card minting, ownership, and metadata attribute storage.</p>
+                    <div className="contract-address-box">
+                      <code>{GAME_CARD_ADDRESS}</code>
+                      <a
+                        href={`https://sepolia.etherscan.io/address/${GAME_CARD_ADDRESS}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="etherscan-link"
+                      >
+                        Inspect on Etherscan ↗
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="info-card">
+                    <h3>🛒 Marketplace Contract</h3>
+                    <p>Provides trustless escrow, fixed-price card listings, and direct buying.</p>
+                    <div className="contract-address-box">
+                      <code>{MARKETPLACE_ADDRESS}</code>
+                      <a
+                        href={`https://sepolia.etherscan.io/address/${MARKETPLACE_ADDRESS}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="etherscan-link"
+                      >
+                        Inspect on Etherscan ↗
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="info-card">
+                    <h3>🌐 IPFS Gateway Integration</h3>
+                    <p>High resolution card visual artwork served over decentralized IPFS nodes.</p>
+                    <ul className="gateway-list">
+                      {IPFS_GATEWAYS.map((gw, i) => (
+                        <li key={i}>
+                          <code>{gw}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </main>
+
+      {/* MODAL 1: CARD DETAILS */}
+      {selectedCard && (
+        <div className="modal-overlay" onClick={() => setSelectedCard(null)}>
+          <div className="modal-container card-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setSelectedCard(null)}>
               ×
             </button>
 
-            <h2>
-              Transfer Card
-            </h2>
+            <div className="modal-grid">
+              <div className="modal-left-image">
+                <img
+                  src={selectedCard.image}
+                  alt={selectedCard.name}
+                  data-gateway="0"
+                  onError={(e) => imageError(e, selectedCard.tokenId)}
+                />
+              </div>
 
-            <p>
-              Transfer{" "}
-              <strong>
-                {
-                  getCardName(
-                    transferCardId
-                  )
-                }
-              </strong>{" "}
-              #
-              {
-                transferCardId
-              }{" "}
-              to another wallet.
-            </p>
+              <div className="modal-right-content">
+                <div className="modal-header">
+                  <div>
+                    <h2>{selectedCard.name}</h2>
+                    <span className="token-id">Token ID #{selectedCard.tokenId}</span>
+                  </div>
+                  <span className={`rarity-badge ${rarityClass(selectedCard.rarity)}`}>
+                    {selectedCard.rarity}
+                  </span>
+                </div>
 
-            <label>
-              Recipient Wallet
-              Address
-            </label>
+                <p className="modal-description">{selectedCard.description}</p>
 
-            <input
-              type="text"
-              placeholder="0x..."
-              value={
-                recipientAddress
-              }
-              onChange={(event) =>
-                setRecipientAddress(
-                  event.target.value
-                )
-              }
-              disabled={
-                loading
-              }
-            />
+                <div className="modal-stats-grid">
+                  <div className="modal-stat-box">
+                    <span>Attack Rating</span>
+                    <strong>⚔️ {selectedCard.attack} / 100</strong>
+                  </div>
+                  <div className="modal-stat-box">
+                    <span>Defense Rating</span>
+                    <strong>🛡️ {selectedCard.defense} / 100</strong>
+                  </div>
+                  <div className="modal-stat-box">
+                    <span>Status</span>
+                    <strong className={selectedCard.listed ? "text-listed" : "text-unlisted"}>
+                      {selectedCard.listed ? `Listed (${selectedCard.price} ETH)` : "Not Listed"}
+                    </strong>
+                  </div>
+                </div>
 
-            <p
-              style={{
-                fontSize:
-                  "13px",
-                opacity:
-                  0.7,
-              }}
-            >
-              This is a free NFT
-              transfer. Only
-              blockchain gas is
-              required.
-            </p>
+                <div className="modal-owner-box">
+                  <span>Current Owner Address:</span>
+                  <code>{selectedCard.owner}</code>
+                </div>
 
-            <div
-              style={{
-                display:
-                  "flex",
-                gap:
-                  "10px",
-                marginTop:
-                  "20px",
-              }}
-            >
+                {/* TRANSACTION HISTORY FOR THIS TOKEN */}
+                <div className="token-history-section">
+                  <h4>On-Chain History</h4>
+                  {getCardHistory(selectedCard.tokenId).length === 0 ? (
+                    <p className="no-history">No marketplace activity recorded for this token yet.</p>
+                  ) : (
+                    <div className="history-timeline">
+                      {getCardHistory(selectedCard.tokenId).map((event, i) => (
+                        <div key={i} className="timeline-item">
+                          <span className="timeline-icon">
+                            {event.type === "LISTED" ? "🏷️" : event.type === "SOLD" ? "🛒" : "↩️"}
+                          </span>
+                          <div>
+                            <strong>
+                              {event.type} {event.type !== "UNLISTED" && `for ${event.price} ETH`}
+                            </strong>
+                            <small>
+                              Seller: {shortenAddress(event.seller)}
+                              {event.buyer && ` | Buyer: ${shortenAddress(event.buyer)}`}
+                            </small>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
+                {/* ACTIONS */}
+                <div className="modal-action-bar">
+                  {selectedCard.listed &&
+                    account &&
+                    selectedCard.owner.toLowerCase() !== account.toLowerCase() && (
+                      <button
+                        className="action-btn buy-btn"
+                        onClick={() => buyCard(selectedCard.tokenId)}
+                        disabled={actionLoading}
+                      >
+                        Buy for {selectedCard.price} ETH
+                      </button>
+                    )}
+
+                  {account && selectedCard.owner.toLowerCase() === account.toLowerCase() && (
+                    <>
+                      {selectedCard.listed ? (
+                        <button
+                          className="action-btn cancel-btn"
+                          onClick={() => unlistCard(selectedCard.tokenId)}
+                          disabled={actionLoading}
+                        >
+                          Cancel Listing
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            className="action-btn sell-btn"
+                            onClick={() => {
+                              setSellModalCard(selectedCard);
+                              setSellPriceInput("");
+                            }}
+                            disabled={actionLoading}
+                          >
+                            Sell Card
+                          </button>
+                          <button
+                            className="action-btn transfer-btn"
+                            onClick={() => {
+                              setTransferModalCard(selectedCard);
+                              setRecipientAddress("");
+                            }}
+                            disabled={actionLoading}
+                          >
+                            Transfer Card
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: SELL CARD */}
+      {sellModalCard && (
+        <div className="modal-overlay" onClick={() => !actionLoading && setSellModalCard(null)}>
+          <div className="modal-container sell-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setSellModalCard(null)} disabled={actionLoading}>
+              ×
+            </button>
+
+            <h3>List {sellModalCard.name} for Sale</h3>
+            <p className="modal-subtitle">Set your listing price in Sepolia ETH.</p>
+
+            <div className="sell-input-group">
+              <label>Selling Price (ETH)</label>
+              <div className="input-with-symbol">
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0.001"
+                  placeholder="e.g. 0.05"
+                  value={sellPriceInput}
+                  onChange={(e) => setSellPriceInput(e.target.value)}
+                  disabled={actionLoading}
+                  autoFocus
+                />
+                <span className="input-symbol">ETH</span>
+              </div>
+            </div>
+
+            <div className="price-presets">
+              <button onClick={() => setSellPriceInput("0.01")} disabled={actionLoading}>0.01 ETH</button>
+              <button onClick={() => setSellPriceInput("0.05")} disabled={actionLoading}>0.05 ETH</button>
+              <button onClick={() => setSellPriceInput("0.1")} disabled={actionLoading}>0.1 ETH</button>
+              <button onClick={() => setSellPriceInput("0.25")} disabled={actionLoading}>0.25 ETH</button>
+              <button onClick={() => setSellPriceInput("0.5")} disabled={actionLoading}>0.5 ETH</button>
+            </div>
+
+            <div className="modal-form-actions">
               <button
-                onClick={() => {
-                  if (!loading) {
-                    setTransferCardId(
-                      null
-                    );
-
-                    setRecipientAddress(
-                      ""
-                    );
-                  }
-                }}
-                disabled={
-                  loading
-                }
+                className="cancel-btn-secondary"
+                onClick={() => setSellModalCard(null)}
+                disabled={actionLoading}
               >
                 Cancel
               </button>
-
               <button
-                className="modal-transfer-button"
-                onClick={() =>
-                  transferCard(
-                    transferCardId
-                  )
-                }
-                disabled={
-                  loading
-                }
+                className="confirm-sell-btn"
+                onClick={handleSellSubmit}
+                disabled={actionLoading || !sellPriceInput}
               >
-                {loading
-                  ? "Transferring..."
-                  : "Transfer Card"}
+                {actionLoading ? "Processing..." : "List Card Now"}
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
 
+      {/* MODAL 3: TRANSFER CARD */}
+      {transferModalCard && (
+        <div className="modal-overlay" onClick={() => !actionLoading && setTransferModalCard(null)}>
+          <div className="modal-container transfer-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setTransferModalCard(null)} disabled={actionLoading}>
+              ×
+            </button>
+
+            <h3>Transfer {transferModalCard.name}</h3>
+            <p className="modal-subtitle">Directly transfer Token #{transferModalCard.tokenId} to another address.</p>
+
+            <div className="transfer-input-group">
+              <label>Recipient Address</label>
+              <input
+                type="text"
+                placeholder="0x..."
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                disabled={actionLoading}
+                autoFocus
+              />
+              {recipientAddress && ethers.isAddress(recipientAddress) && (
+                <small className="valid-address-tag">✓ Valid EVM Address</small>
+              )}
+            </div>
+
+            <div className="modal-form-actions">
+              <button
+                className="cancel-btn-secondary"
+                onClick={() => setTransferModalCard(null)}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-transfer-btn"
+                onClick={handleTransferSubmit}
+                disabled={actionLoading || !recipientAddress || !ethers.isAddress(recipientAddress)}
+              >
+                {actionLoading ? "Processing..." : "Transfer Card"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FOOTER */}
+      <footer className="footer-bar">
+        <p>© MythicForge Marketplace. Built for Ethereum Sepolia Testnet.</p>
+      </footer>
     </div>
   );
 }
